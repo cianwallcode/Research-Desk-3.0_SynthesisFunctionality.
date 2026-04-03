@@ -3,122 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESEARCH DESK | V4.3</title>
+    <title>RESEARCH DESK | V4.4</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --bg: #ffffff; --accent: #ff6b00; --text: #1a1a1a; --border: #e0e0e0; --side-width: 65px; }
+        :root { --bg: #ffffff; --accent: #ff6b00; --text: #1a1a1a; --border: #e0e0e0; --side: 65px; }
         body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100%; overflow: hidden; }
 
-        /* --- LANDING PAGE --- */
-        #page-landing { position: fixed; inset: 0; background: white; z-index: 9999; overflow-y: auto; text-align: center; display: block; }
-        .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); }
-        .landing-footer { padding: 60px 20px; background: #f9f9f9; color: #888; font-size: 12px; letter-spacing: 1px; }
-
-        /* --- NAVIGATION --- */
+        /* --- NAVIGATION & LOGO --- */
         nav { background: #1a1a1a; color: white; display: none; align-items: center; padding: 0 20px; height: 60px; z-index: 1000; position: sticky; top:0; }
-        .logo { font-weight: 900; cursor: pointer; letter-spacing: -1px; font-size: 1.2rem; }
+        .logo { font-weight: 900; cursor: pointer; font-size: 1.2rem; }
         .logo span { color: var(--accent); }
-        .nav-tab { background: none; border: none; color: #888; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 10px; margin-left: 15px; transition: 0.2s; }
+        .nav-tab { background: none; border: none; color: #888; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 10px; margin-left: 15px; }
         .nav-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
+        /* --- LANDING --- */
+        #page-landing { position: fixed; inset: 0; background: white; z-index: 9999; overflow-y: auto; text-align: center; }
+        .hero { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
         /* --- LAYOUT --- */
         .main-container { display: flex; height: calc(100vh - 60px); }
-        .resource-bar { width: var(--side-width); background: #f4f4f4; border-right: 1px solid var(--border); display: none; flex-direction: column; align-items: center; padding-top: 25px; gap: 25px; }
-        .res-icon { width: 35px; height: 35px; background: #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #666; cursor: pointer; text-decoration: none; transition: 0.3s; }
-        .res-icon:hover { background: var(--accent); color: white; transform: scale(1.1); }
+        .resource-bar { width: var(--side); background: #f4f4f4; border-right: 1px solid var(--border); display: none; flex-direction: column; align-items: center; padding-top: 25px; gap: 20px; }
+        .res-icon { width: 35px; height: 35px; background: #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #666; cursor: pointer; text-decoration: none; }
+        .res-icon:hover { background: var(--accent); color: white; }
 
-        /* --- PAGES --- */
         .page-content { display: none; flex: 1; height: 100%; overflow-y: auto; }
         .page-content.active { display: flex !important; }
 
-        /* --- UI ELEMENTS --- */
-        #sidebar { width: 320px; border-right: 1px solid var(--border); padding: 25px; background: #fff; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
-        #map { flex: 1; z-index: 1; background: #eee; }
-        .card { background: white; padding: 20px; border: 1px solid var(--border); border-top: 4px solid var(--accent); margin-bottom: 20px; border-radius: 2px; }
-        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; text-transform: uppercase; width: 100%; letter-spacing: 1px; }
+        #sidebar { width: 300px; border-right: 1px solid var(--border); padding: 25px; background: #fff; }
+        #map { flex: 1; z-index: 1; background: #f0f0f0; }
+
+        /* --- UI --- */
+        .card { background: white; padding: 20px; border: 1px solid var(--border); border-top: 4px solid var(--accent); margin-bottom: 20px; }
+        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; text-transform: uppercase; width: 100%; }
         
-        /* TABLE STYLING */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: var(--accent); border-bottom: 2px solid var(--accent); padding: 15px; font-size: 11px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
-
-        /* COMPARISON */
-        .comp-column { flex: 1; padding: 40px; border-right: 1px solid var(--border); background: #fafafa; }
-        select { width: 100%; padding: 12px; border: 1px solid var(--border); margin-bottom: 20px; font-family: inherit; }
-
-        /* LEAFLET POPUP OVERRIDE */
-        .leaflet-popup-content-wrapper { border-radius: 0; border-bottom: 3px solid var(--accent); }
-        .leaflet-popup-tip { background: var(--accent); }
+        /* LAYER CONTROL OVERRIDE */
+        .leaflet-control-layers { border-radius: 0 !important; border: 2px solid var(--accent) !important; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="page-landing">
         <div class="hero">
-            <h1 style="font-size: 5rem; letter-spacing: -4px; margin:0; font-weight: 900;">RESEARCH<span>DESK</span></h1>
-            <p style="color:#aaa; letter-spacing:8px; margin: 10px 0 50px 0; font-size: 14px;">SITE DATA & ARCHITECTURAL SYNTHESIS</p>
-            <button class="primary-btn" style="width:240px" onclick="initApp()">START PROJECT</button>
-            <p style="margin-top: 50px; color: var(--accent); font-size: 12px; animation: bounce 2s infinite;">SCROLL FOR INFO ↓</p>
+            <h1 style="font-size: 4rem; letter-spacing: -3px; margin:0;">RESEARCH<span>DESK</span></h1>
+            <button class="primary-btn" style="width:200px; margin-top:30px;" onclick="initApp()">START PROJECT</button>
         </div>
-        <div style="padding: 100px 20px; max-width: 800px; margin: 0 auto; text-align: left;">
-            <h2 style="color: var(--accent);">01. SPATIAL LOGIC</h2>
-            <p>Direct integration with OPW Flood WMS and NIAH datasets to automate initial site constraints.</p>
-        </div>
-        <footer class="landing-footer">
-            <p>© 2026 RESEARCH DESK | ALL RIGHTS RESERVED</p>
-            <p style="margin-top:10px;">ENQUIRIES: STUDIO@RESEARCHDESK.IE</p>
-        </footer>
+        <footer style="padding: 40px; color: #aaa; font-size: 11px;">© 2026 | STUDIO@RESEARCHDESK.IE</footer>
     </div>
 
     <nav id="main-nav">
         <div class="logo" onclick="goHome()">RESEARCH<span>DESK</span></div>
         <div style="margin-left:auto; display:flex;">
-            <button class="nav-tab active" id="tab-map" onclick="showPage('map')">01. Map</button>
-            <button class="nav-tab" id="tab-database" onclick="showPage('database')">02. Inventory</button>
-            <button class="nav-tab" id="tab-compare" onclick="showPage('compare')">03. Compare</button>
-            <button class="nav-tab" id="tab-synthesis" onclick="showPage('synthesis')">04. Analysis Dashboard</button>
+            <button class="nav-tab active" id="tab-map" onclick="showPage('map')">Map View</button>
+            <button class="nav-tab" id="tab-database" onclick="showPage('database')">Inventory</button>
+            <button class="nav-tab" id="tab-compare" onclick="showPage('compare')">Comparison</button>
+            <button class="nav-tab" id="tab-synthesis" onclick="showPage('synthesis')">Analysis Dashboard</button>
         </div>
     </nav>
 
     <div class="main-container">
         <aside class="resource-bar" id="res-bar">
-            <a href="https://www.buildingsofireland.ie/" target="_blank" class="res-icon" title="NIAH">NI</a>
-            <a href="http://soils.teagasc.ie/" target="_blank" class="res-icon" title="Teagasc">TG</a>
-            <a href="https://www.floodinfo.ie/" target="_blank" class="res-icon" title="Flood Info">FL</a>
-            <a href="https://www.archaeology.ie/" target="_blank" class="res-icon" title="Archaeology">AR</a>
+            <a href="https://www.buildingsofireland.ie/" target="_blank" class="res-icon">NI</a>
+            <a href="http://soils.teagasc.ie/" target="_blank" class="res-icon">TG</a>
+            <a href="https://www.floodinfo.ie/" target="_blank" class="res-icon">FL</a>
         </aside>
 
         <div id="page-map" class="page-content active" style="flex-direction:row; overflow:hidden;">
             <div id="sidebar">
-                <h3 id="side-name" style="margin-top:0;">Site Selection</h3>
-                <div id="side-info"><p style="color:#aaa;">Click a pin on the map to initialize site analysis.</p></div>
+                <h3 id="side-name">Selection</h3>
+                <div id="side-info"><p style="color:#aaa;">Toggle layers in the top-right to view regional constraints.</p></div>
             </div>
             <div id="map"></div>
         </div>
 
-        <div id="page-database" class="page-content" style="padding:50px; flex-direction:column;">
-            <span style="color: var(--accent); font-weight: 800; font-size: 11px; letter-spacing: 2px;">MASTER DATASET</span>
-            <table>
-                <thead><tr><th>NAME</th><th>TYPE</th><th>STYLE</th><th>STATUS</th></tr></thead>
+        <div id="page-database" class="page-content" style="padding:40px; flex-direction:column;">
+             <table id="db-table" style="width:100%; text-align:left; border-collapse:collapse;">
+                <thead><tr style="color:var(--accent);"><th>NAME</th><th>TYPE</th><th>STATUS</th></tr></thead>
                 <tbody id="db-body"></tbody>
-            </table>
+             </table>
         </div>
 
-        <div id="page-compare" class="page-content">
-            <div class="comp-column">
+        <div id="page-compare" class="page-content" style="padding:20px;">
+            <div style="flex:1; padding:20px; border-right:1px solid #eee;">
                 <select id="sel-a" onchange="doCompare()"></select>
                 <div id="res-a"></div>
             </div>
-            <div class="comp-column" style="background: #f0f0f0;">
+            <div style="flex:1; padding:20px;">
                 <select id="sel-b" onchange="doCompare()"></select>
                 <div id="res-b"></div>
             </div>
         </div>
 
-        <div id="page-synthesis" class="page-content" style="padding:50px; flex-direction:column; background:#f4f4f4;">
-            <h2 id="syn-title" style="margin-top:0;">No Site Selected</h2>
-            <div id="analysis-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:30px; margin-top:20px;">
-                </div>
+        <div id="page-synthesis" class="page-content" style="padding:40px; flex-direction:column; background:#f4f4f4;">
+            <h2 id="syn-title">Analysis</h2>
+            <div id="analysis-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;"></div>
         </div>
     </div>
 
@@ -135,66 +112,38 @@
                 const resp = await fetch('database.json');
                 sites = await resp.json();
                 
-                if(!map) {
-                    map = L.map('map', {zoomControl: false}).setView([53.42, -7.92], 7);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-                    
-                    // Live Flood Overlay
-                    L.tileLayer.wms("https://maps.opw.ie/arcgis/services/Flood_Risk/Flood_Maps/MapServer/WMSServer", {
-                        layers: '0', format: 'image/png', transparent: true, opacity: 0.4
-                    }).addTo(map);
-                }
+                // MAP INITIALIZATION
+                map = L.map('map', {zoomControl: false}).setView([53.4, -7.9], 7);
+                const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-                // Render Pins + Popups
+                // DATA LAYERS (WMS)
+                const floodLayer = L.tileLayer.wms("https://maps.opw.ie/arcgis/services/Flood_Risk/Flood_Maps/MapServer/WMSServer", {
+                    layers: '0', format: 'image/png', transparent: true, opacity: 0.5
+                });
+
+                const soilLayer = L.tileLayer.wms("https://gis.teagasc.ie/soils/wms.php", {
+                    layers: 'principalsurvey', format: 'image/png', transparent: true, opacity: 0.4
+                });
+
+                // LAYER CONTROL (Geohive Style)
+                const overlays = { "OPW Flood Risk": floodLayer, "Teagasc Soils": soilLayer };
+                L.control.layers(null, overlays, {collapsed: false}).addTo(map);
+
+                // SITE PINS
                 sites.forEach(s => {
                     if(s.coords) {
-                        let m = L.circleMarker(s.coords, {radius:11, color:'white', fillColor:'#ff6b00', fillOpacity:1, weight:2})
-                        .addTo(map);
-
-                        m.bindPopup(`
-                            <div style="text-align:center;">
-                                <strong style="color:#ff6b00;">${s.name}</strong><br>
-                                <span style="font-size:10px; color:#888;">${s.bucket} | ${s.status}</span>
-                            </div>
-                        `);
-
+                        let m = L.circleMarker(s.coords, {radius:10, color:'white', fillColor:'#ff6b00', fillOpacity:1, weight:2}).addTo(map);
+                        m.bindPopup(`<strong>${s.name}</strong><br>${s.bucket}`);
                         m.on('click', () => {
                             selectedSite = s;
                             document.getElementById('side-name').innerText = s.name;
-                            document.getElementById('side-info').innerHTML = `
-                                <div class="card">
-                                    <p><strong>Typology:</strong> ${s.bucket}</p>
-                                    <p><strong>Style:</strong> ${s.style}</p>
-                                    <button class="primary-btn" onclick="runAnalysis()">Analyze Dashboard</button>
-                                </div>`;
-                            m.openPopup();
+                            document.getElementById('side-info').innerHTML = `<div class="card"><p>${s.status}</p><button class="primary-btn" onclick="runAnalysis()">Analyze Dashboard</button></div>`;
                         });
                     }
                 });
 
-                populateInventory();
-                populateSelectors();
-
-            } catch (e) { console.error("Initialization Failed:", e); }
-        }
-
-        function goHome() {
-            document.getElementById('page-landing').style.display = 'block';
-            document.getElementById('main-nav').style.display = 'none';
-            document.getElementById('res-bar').style.display = 'none';
-        }
-
-        function populateInventory() {
-            document.getElementById('db-body').innerHTML = sites.map(s => `
-                <tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td><td>${s.status}</td></tr>
-            `).join('');
-        }
-
-        function populateSelectors() {
-            const opts = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.getElementById('sel-a').innerHTML = opts;
-            document.getElementById('sel-b').innerHTML = opts;
-            doCompare();
+                populateTable(); populateSelectors();
+            } catch (e) { console.error(e); }
         }
 
         function doCompare() {
@@ -202,48 +151,27 @@
             const b = sites.find(s => s.id == document.getElementById('sel-b').value);
             const render = (s) => `
                 <div class="card">
-                    <div style="height:180px; background:#f0f0f0; margin-bottom:20px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #eee;">
-                        <img src="${s.plan_url}" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.src='https://via.placeholder.com/400x300?text=Plan+Missing'">
-                    </div>
-                    <h3 style="margin-top:0; color:var(--accent);">${s.name}</h3>
-                    <p style="font-size:13px;"><strong>Plan:</strong> ${s.plan_type || 'Standard Morphology'}</p>
-                    <p style="font-size:12px; color:#666; line-height:1.6;">${s.notes || ''}</p>
+                    <img src="${s.plan_url}" style="width:100%; height:200px; object-fit:contain; background:#eee;" onerror="this.src='https://via.placeholder.com/300x200?text=Plan+Missing'">
+                    <h4>${s.name}</h4>
+                    <p>${s.plan_type}</p>
                 </div>`;
             document.getElementById('res-a').innerHTML = render(a);
             document.getElementById('res-b').innerHTML = render(b);
         }
 
+        // Logic functions for synthesis, table, etc. remain mapped to variables
         function runAnalysis() {
             showPage('synthesis');
             const s = selectedSite;
             document.getElementById('syn-title').innerText = s.name;
-            
-            const lowRisk = s.flood_risk === "Low";
-            const isDerelict = s.status.toLowerCase() === "derelict";
-            const opportunity = (lowRisk && isDerelict);
-
-            document.getElementById('analysis-grid').innerHTML = `
-                <div class="card" style="border-top-color: ${opportunity ? '#27ae60' : '#e74c3c'};">
-                    <h4 style="margin-top:0; color: ${opportunity ? '#27ae60' : '#e74c3c'};">STRATEGIC CONCLUSION</h4>
-                    <p>${opportunity ? 
-                        '<strong>HIGH OPPORTUNITY:</strong> Site is derelict with no significant flood constraints. Priority candidate for structural adaptive reuse.' : 
-                        '<strong>CONSTRAINED:</strong> High flood risk or active status detected. Review OPW datasets before proceeding with design proposal.'}</p>
-                </div>
-                <div class="card">
-                    <h4 style="margin-top:0; color:var(--accent);">TECHNICAL SUMMARY</h4>
-                    <p>Typology: ${s.bucket}</p>
-                    <p>Flood Risk: ${s.flood_risk}</p>
-                    <p>NIAH ID: ${s.niah_id || 'Pending'}</p>
-                </div>`;
+            const opp = (s.flood_risk === "Low" && s.status.toLowerCase() === "derelict");
+            document.getElementById('analysis-grid').innerHTML = `<div class="card"><h3>Strategy</h3><p>${opp ? 'OPPORTUNITY' : 'CONSTRAINED'}</p></div>`;
         }
 
-        function showPage(id) {
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('page-' + id).classList.add('active');
-            document.getElementById('tab-' + id).classList.add('active');
-            if(id === 'map') setTimeout(() => map.invalidateSize(), 300);
-        }
+        function populateTable() { document.getElementById('db-body').innerHTML = sites.map(s => `<tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.status}</td></tr>`).join(''); }
+        function populateSelectors() { const opts = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); document.getElementById('sel-a').innerHTML = opts; document.getElementById('sel-b').innerHTML = opts; doCompare(); }
+        function goHome() { document.getElementById('page-landing').style.display = 'block'; document.getElementById('main-nav').style.display = 'none'; }
+        function showPage(id) { document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active')); document.getElementById('page-' + id).classList.add('active'); if(id === 'map') setTimeout(() => map.invalidateSize(), 200); }
     </script>
 </body>
 </html>
