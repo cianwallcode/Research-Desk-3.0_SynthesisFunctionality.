@@ -3,78 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESEARCH DESK | V5.2</title>
+    <title>RESEARCH DESK | V5.3</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* BRANDING: ORANGE AND WHITE */
-        :root { 
-            --accent: #ff6b00; 
-            --bg: #ffffff; 
-            --nav-h: 60px; 
-            --side: 360px; 
-            --text: #1a1a1a;
-        }
+        :root { --accent: #ff6b00; --nav-h: 60px; --side: 360px; }
+        body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; height: 100%; background: #fff; overflow: hidden; }
 
-        body, html { 
-            margin: 0; padding: 0; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            height: 100%; background: var(--bg); color: var(--text);
-        }
-
-        /* TOP BLACK NAVIGATION BAR */
+        /* HEADER NAVIGATION */
         nav { 
             background: #000; color: white; display: flex; align-items: center; 
-            padding: 0 25px; height: var(--nav-h); z-index: 1000; position: fixed; top: 0; width: 100%;
+            padding: 0 25px; height: var(--nav-h); z-index: 1000; border-bottom: 1px solid #333;
         }
         .logo { font-weight: 900; cursor: pointer; font-size: 1.2rem; margin-right: 40px; }
         .logo span { color: var(--accent); }
-        
         .nav-tabs { display: flex; gap: 20px; }
-        .nav-link { color: #888; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; background: none; border: none; cursor: pointer; padding: 5px 0; }
-        .nav-link.active { color: white; border-bottom: 2px solid var(--accent); }
+        .nav-link { color: #888; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; background: none; border: none; cursor: pointer; }
+        .nav-link.active { color: white; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
 
-        .portal-links { display: flex; gap: 15px; margin-left: auto; border-left: 1px solid #333; padding-left: 20px; margin-right: 50px; }
-        .p-link { color: #666; font-size: 10px; text-decoration: none; font-weight: 700; text-transform: uppercase; transition: 0.2s; }
+        .portal-links { display: flex; gap: 15px; margin-left: auto; border-left: 1px solid #333; padding-left: 20px; }
+        .p-link { color: #666; font-size: 10px; text-decoration: none; font-weight: 700; text-transform: uppercase; }
         .p-link:hover { color: var(--accent); }
 
-        /* MAIN CONTENT AREA */
-        .main-wrapper { display: flex; flex-direction: column; height: 100vh; padding-top: var(--nav-h); }
-        .content-body { display: flex; flex: 1; overflow: hidden; }
+        /* LAYOUT */
+        .main-container { display: flex; height: calc(100vh - var(--nav-h)); flex-direction: column; }
+        .workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        #sidebar { width: var(--side); background: #fff; border-right: 1px solid #eee; padding: 25px; overflow-y: auto; z-index: 10; }
+        #map { flex: 1; background: #f4f4f4; }
 
-        /* SIDEBAR (SCROLLABLE) */
-        #sidebar { 
-            width: var(--side); background: #fff; border-right: 1px solid #eee; 
-            padding: 25px; overflow-y: auto; z-index: 10;
-        }
+        /* UI COMPONENTS */
+        .toolbar { position: absolute; top: 20px; right: 20px; background: white; z-index: 500; padding: 15px; border: 2px solid #000; box-shadow: 6px 6px 0px var(--accent); width: 170px; }
+        .site-card { border-top: 6px solid var(--accent); background: #fdfdfd; padding: 20px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .plan-preview { width: 100%; height: 200px; object-fit: contain; background: #eee; margin: 10px 0; border: 1px solid #ddd; }
+        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; width: 100%; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
 
-        /* MAP AREA */
-        #map { flex: 1; background: #f0f0f0; }
-
-        /* FLOATING TOOLBAR */
-        .toolbar { 
-            position: absolute; top: 80px; right: 20px; background: white; 
-            z-index: 500; padding: 15px; border: 2px solid #000; 
-            box-shadow: 6px 6px 0px var(--accent); width: 180px; 
-        }
-        .toolbar h4 { margin: 0 0 10px 0; font-size: 10px; text-transform: uppercase; color: var(--accent); }
-        .toggle-item { display: flex; align-items: center; margin-bottom: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
-
-        /* CARDS & BUTTONS */
-        .site-card { border-top: 6px solid var(--accent); background: #fdfdfd; padding: 20px; margin-top: 20px; }
-        .plan-preview { width: 100%; height: 220px; object-fit: contain; border: 1px solid #ddd; margin: 15px 0; background: #fff; }
-        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; width: 100%; text-transform: uppercase; font-size: 11px; }
-
-        /* INVENTORY VIEW */
-        #page-inventory { display:none; padding: 40px; background: white; width: 100%; overflow-y: auto; }
+        /* INVENTORY TABLE */
+        #page-inventory { display:none; padding: 40px; background: white; width: 100%; overflow-y: auto; height: 100%; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid var(--accent); font-size: 11px; color: var(--accent); }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--accent); font-size: 11px; color: var(--accent); }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
 
-        /* FOOTER FOR LANDING PAGE */
-        footer { 
-            background: #f9f9f9; padding: 20px; border-top: 1px solid #eee; 
-            text-align: center; font-size: 10px; color: #999; text-transform: uppercase;
-        }
+        footer { background: #f9f9f9; padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px; color: #999; }
     </style>
 </head>
 <body>
@@ -86,42 +55,41 @@
             <button class="nav-link" id="btn-inv" onclick="switchView('inventory')">02. Inventory</button>
         </div>
         <div class="portal-links">
-            <a href="https://www.buildingsofireland.ie/" target="_blank" class="p-link">NIAH</a>
-            <a href="http://soils.teagasc.ie/" target="_blank" class="p-link">TEAGASC</a>
-            <a href="https://www.floodinfo.ie/" target="_blank" class="p-link">FLOOD.IE</a>
-            <a href="https://www.landdirect.ie/" target="_blank" class="p-link">LANDDIRECT</a>
+            <a href="https://www.landdirect.ie/" target="_blank" class="p-link">LandDirect</a>
+            <a href="https://www.floodinfo.ie/" target="_blank" class="p-link">Flood.ie</a>
         </div>
     </nav>
 
-    <div class="main-wrapper">
-        <div class="content-body">
+    <div class="main-container">
+        <div class="workspace">
             <div id="sidebar">
-                <h2 id="side-title" style="margin-top:0;">Site Analysis</h2>
+                <h2 id="side-title" style="margin:0; letter-spacing:-1px;">Site Analysis</h2>
                 <div id="side-content">
-                    <p>Select a site on the map to begin.</p>
+                    <p style="color:#888; font-size:13px; line-height:1.6;">Select a site marker to visualize architectural boundaries and registry data.</p>
                 </div>
             </div>
 
             <div id="map"></div>
 
             <div class="toolbar" id="map-toolbar">
-                <h4>Filters</h4>
-                <div id="filter-controls"></div>
-                <h4 style="margin-top:15px;">Layers</h4>
-                <label class="toggle-item"><input type="checkbox" id="tog-flood" onchange="toggleFlood()"> Flood Risk (OPW)</label>
+                <p style="margin:0 0 10px 0; font-size:10px; font-weight:900; color:var(--accent); text-transform:uppercase;">Map Layers</p>
+                <label style="display:flex; align-items:center; font-size:11px; font-weight:700; cursor:pointer;">
+                    <input type="checkbox" id="tog-flood" onchange="toggleFlood()" style="margin-right:8px; accent-color:var(--accent);"> OPW Flood Risk
+                </label>
             </div>
 
             <div id="page-inventory">
-                <h2>Project Master Inventory</h2>
+                <h1 style="margin-top:0;">Master Data Inventory</h1>
                 <table>
-                    <thead><tr><th>NAME</th><th>TYPOLOGY</th><th>STYLE</th><th>STATUS</th></tr></thead>
+                    <thead><tr><th>SITE NAME</th><th>TYPOLOGY</th><th>STYLE</th></tr></thead>
                     <tbody id="table-body"></tbody>
                 </table>
             </div>
         </div>
 
         <footer>
-            &copy; 2026 Architectural Research Desk | Contact: research@desk.ie | Irish Heritage Spatial Data
+            <span>&copy; 2026 ARCHITECTURAL RESEARCH DESK</span>
+            <span>CONTACT: RESEARCH@DESK.IE | IRELAND</span>
         </footer>
     </div>
 
@@ -131,11 +99,22 @@
     <script>
         let map, markerGroup, boundaryGroup, floodLayer;
 
-        function init() {
-            if (typeof siteData === 'undefined') {
-                document.getElementById('side-content').innerHTML = "<b>database.js not found.</b>";
-                return;
+        // FALLBACK DATA: This ensures the map works even if database.js fails
+        const fallbackData = [
+            {
+                "name": "Demo: Mellifont Abbey",
+                "bucket": "Cistercian",
+                "style": "Romanesque",
+                "coords": [53.7424, -6.4651],
+                "boundary": [[53.7431, -6.4665], [53.7435, -6.4645], [53.7418, -6.4638], [53.7415, -6.4658]],
+                "plan_url": "https://placehold.co/600x400?text=Mellifont+Plan",
+                "notes": "Sample data used because database.js was not found."
             }
+        ];
+
+        function init() {
+            // Use external data if available, otherwise use fallback
+            const activeData = (typeof siteData !== 'undefined') ? siteData : fallbackData;
 
             map = L.map('map', { zoomControl: false }).setView([53.4, -7.8], 7);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
@@ -147,50 +126,32 @@
                 layers: '0', format: 'image/png', transparent: true, opacity: 0.4, version: '1.1.1'
             });
 
-            populateFilters();
-            renderMap();
-            renderTable();
+            renderPoints(activeData);
+            renderTable(activeData);
         }
 
-        function populateFilters() {
-            const buckets = [...new Set(siteData.map(s => s.bucket))];
-            document.getElementById('filter-controls').innerHTML = buckets.map(b => `
-                <label class="toggle-item"><input type="checkbox" checked value="${b}" onchange="renderMap()"> ${b}</label>
-            `).join('');
-        }
-
-        function renderMap() {
+        function renderPoints(data) {
             markerGroup.clearLayers();
-            const active = Array.from(document.querySelectorAll('#filter-controls input:checked')).map(i => i.value);
-            siteData.forEach(s => {
-                if(active.includes(s.bucket)) {
-                    L.circleMarker(s.coords, { radius: 10, color: '#000', weight: 2, fillColor: varColor(s.bucket), fillOpacity: 1 })
-                     .addTo(markerGroup)
-                     .on('click', () => focusSite(s));
-                }
+            data.forEach(s => {
+                L.circleMarker(s.coords, { radius: 10, color: '#000', weight: 2, fillColor: '#ff6b00', fillOpacity: 1 })
+                 .addTo(markerGroup)
+                 .on('click', () => {
+                    document.getElementById('side-title').innerText = s.name;
+                    document.getElementById('side-content').innerHTML = `
+                        <div class="site-card">
+                            <p style="font-size:10px; font-weight:900; color:var(--accent); text-transform:uppercase;">${s.bucket}</p>
+                            <img src="${s.plan_url}" class="plan-preview" onerror="this.src='https://placehold.co/400x300?text=Plan+Missing';">
+                            <p style="font-size:12px; color:#666; margin-bottom:20px;">${s.notes || ''}</p>
+                            <button class="primary-btn" onclick="window.open('https://www.landdirect.ie','_blank')">Start Project</button>
+                        </div>`;
+                    
+                    boundaryGroup.clearLayers();
+                    if(s.boundary) {
+                        L.polygon(s.boundary, { color: 'red', weight: 3, fillOpacity: 0.1 }).addTo(boundaryGroup);
+                        map.flyTo(s.coords, 17);
+                    }
+                 });
             });
-        }
-
-        function focusSite(s) {
-            document.getElementById('side-title').innerText = s.name;
-            document.getElementById('side-content').innerHTML = `
-                <div class="site-card">
-                    <p style="font-size:10px; font-weight:800; color:var(--accent);">${s.bucket.toUpperCase()}</p>
-                    <img src="${s.plan_url}" class="plan-preview" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Plan+Missing';">
-                    <p><strong>Plan Type:</strong> ${s.plan_type}</p>
-                    <button class="primary-btn" onclick="window.open('https://www.landdirect.ie','_blank')">Start Project</button>
-                </div>`;
-            
-            boundaryGroup.clearLayers();
-            if(s.boundary) {
-                L.polygon(s.boundary, { color: 'red', weight: 3, fillOpacity: 0.1 }).addTo(boundaryGroup);
-                map.flyTo(s.coords, 17);
-            }
-        }
-
-        function varColor(type) {
-            const colors = { 'Cistercian': '#ff6b00', 'Museum': '#27ae60', 'Benedictine': '#8e44ad', 'Modernist': '#3498db' };
-            return colors[type] || '#888';
         }
 
         function toggleFlood() {
@@ -198,9 +159,9 @@
             else map.removeLayer(floodLayer);
         }
 
-        function renderTable() {
-            document.getElementById('table-body').innerHTML = siteData.map(s => `
-                <tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td><td>${s.status}</td></tr>
+        function renderTable(data) {
+            document.getElementById('table-body').innerHTML = data.map(s => `
+                <tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td></tr>
             `).join('');
         }
 
@@ -212,10 +173,10 @@
             document.getElementById('page-inventory').style.display = isMap ? 'none' : 'block';
             document.getElementById('btn-map').classList.toggle('active', isMap);
             document.getElementById('btn-inv').classList.toggle('active', !isMap);
-            if(isMap) setTimeout(() => map.invalidateSize(), 200);
+            if(isMap) setTimeout(() => map.invalidateSize(), 100);
         }
 
-        init();
+        window.onload = init;
     </script>
 </body>
 </html>
