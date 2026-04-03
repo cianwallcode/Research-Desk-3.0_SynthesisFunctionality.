@@ -6,9 +6,13 @@
     "style": "Romanesque/Gothic",
     "status": "derelict",
     "coords": [53.7424, -6.4651],
+    "boundary": [
+      [53.7431, -6.4665], [53.7435, -6.4645], 
+      [53.7418, -6.4638], [53.7415, -6.4658]
+    ],
     "plan_type": "Expansive Cruciform",
     "plan_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Mellifont_Abbey_Plan.jpg/800px-Mellifont_Abbey_Plan.jpg",
-    "notes": "Original Cistercian mother house in Ireland. Octagonal lavabo is the primary geometric focus."
+    "notes": "Original Cistercian mother house in Ireland."
   },
   {
     "id": 2,
@@ -17,9 +21,13 @@
     "style": "Irish Gothic",
     "status": "derelict",
     "coords": [52.5108, -7.1581],
+    "boundary": [
+      [52.5115, -7.1595], [52.5118, -7.1575], 
+      [52.5101, -7.1568], [52.5098, -7.1588]
+    ],
     "plan_type": "Standard Cistercian",
     "plan_url": "https://www.buildingsofireland.ie/app/uploads/2019/07/Jerpoint-Plan-1.jpg",
-    "notes": "Excellent cloister carvings. Standard Bernardine plan layout."
+    "notes": "Excellent cloister carvings."
   },
   {
     "id": 42,
@@ -28,9 +36,13 @@
     "style": "Contemporary/Gothic",
     "status": "reused",
     "coords": [52.6522, -7.2521],
+    "boundary": [
+      [52.6526, -7.2528], [52.6528, -7.2518], 
+      [52.6518, -7.2515], [52.6516, -7.2525]
+    ],
     "plan_type": "Linear Nave + Insert",
     "plan_url": "https://images.adsttc.com/media/images/59b1/2c8b/b111/5f3d/7b00/0173/slideshow/08_Medieval_Mile_Museum_Ground_Floor_Plan.jpg",
-    "notes": "Adaptive reuse by McCullough Mulvin. Lead-clad timber insertions within the stone shell."
+    "notes": "Adaptive reuse by McCullough Mulvin."
   },
   {
     "id": 18,
@@ -39,9 +51,13 @@
     "style": "Anglo-Norman",
     "status": "derelict",
     "coords": [53.6821, -7.2284],
+    "boundary": [
+      [53.6830, -7.2300], [53.6832, -7.2270], 
+      [53.6812, -7.2268], [53.6810, -7.2295]
+    ],
     "plan_type": "Compact/Fortified",
     "plan_url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Fore_Abbey_Layout.png",
-    "notes": "Benedictine priory. Features distinct defensive tower architecture uncommon in Cistercian sites."
+    "notes": "Features distinct defensive tower architecture."
   },
   {
     "id": 23,
@@ -50,8 +66,12 @@
     "style": "Post-War Modern",
     "status": "active",
     "coords": [53.3892, -6.3031],
+    "boundary": [
+      [53.3898, -6.3045], [53.3902, -6.3025], 
+      [53.3886, -6.3018], [53.3882, -6.3038]
+    ],
     "plan_type": "Radial/Fan",
     "plan_url": "https://moma.org/collection/works/images/large/12345.jpg",
-    "notes": "Modernist fan-shaped plan designed for maximum visibility of the altar."
+    "notes": "Designed for maximum visibility of the altar."
   }
 ]
