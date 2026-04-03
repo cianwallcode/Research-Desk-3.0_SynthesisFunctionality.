@@ -3,134 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESEARCH DESK | V4.7</title>
+    <title>RESEARCH DESK | V4.9</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --accent: #ff6b00; --bg: #ffffff; --nav-h: 70px; --side: 320px; }
+        :root { --accent: #ff6b00; --bg: #ffffff; --nav-h: 70px; --side: 360px; }
         body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; height: 100%; overflow: hidden; background: #000; }
 
-        /* TOP BLACK BAR (Unified Nav + Quick Links) */
+        /* HEADER */
         nav { 
-            background: #111; color: white; display: flex; align-items: center; 
+            background: #000; color: white; display: flex; align-items: center; 
             padding: 0 25px; height: var(--nav-h); z-index: 1000; border-bottom: 1px solid #333;
         }
-        .logo { font-weight: 900; cursor: pointer; font-size: 1.4rem; margin-right: 40px; }
+        .logo { font-weight: 900; cursor: pointer; font-size: 1.4rem; margin-right: 30px; letter-spacing: -1px; }
         .logo span { color: var(--accent); }
         
-        .quick-links { display: flex; gap: 15px; border-left: 1px solid #333; padding-left: 20px; margin-left: 20px; }
-        .q-link { color: #888; font-size: 10px; text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .nav-link { color: #888; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; margin-right: 20px; background: none; border: none; cursor: pointer; }
+        .nav-link.active { color: white; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+
+        .quick-links { display: flex; gap: 15px; border-left: 1px solid #333; padding-left: 20px; margin-left: auto; }
+        .q-link { color: #666; font-size: 10px; text-decoration: none; font-weight: 700; text-transform: uppercase; }
         .q-link:hover { color: var(--accent); }
 
-        /* TOOLBAR (Toggle Controls) */
+        /* FLOATING TOOLBAR */
         .toolbar { 
             position: absolute; top: 90px; right: 20px; background: white; 
-            z-index: 500; padding: 15px; border: 2px solid #000; box-shadow: 5px 5px 0px var(--accent);
+            z-index: 500; padding: 20px; border: 2px solid #000; box-shadow: 6px 6px 0px var(--accent); width: 180px;
         }
-        .toolbar h4 { margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: var(--accent); }
-        .toggle-btn { display: block; margin-bottom: 8px; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .toolbar h4 { margin: 0 0 12px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .toggle-item { display: flex; align-items: center; margin-bottom: 10px; font-size: 11px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .toggle-item input { margin-right: 10px; accent-color: var(--accent); }
 
         /* LAYOUT */
         .main-container { display: flex; height: calc(100vh - var(--nav-h)); }
-        #sidebar { width: var(--side); background: #fff; border-right: 1px solid #eee; padding: 25px; overflow-y: auto; }
-        #map { flex: 1; background: #222; }
+        #sidebar { width: var(--side); background: #fff; border-right: 1px solid #eee; padding: 25px; overflow-y: auto; z-index: 10; }
+        #map { flex: 1; background: #1a1a1a; }
 
-        /* UI */
-        .card { border-top: 5px solid var(--accent); background: #f9f9f9; padding: 20px; margin-bottom: 20px; border-radius: 0; }
-        .primary-btn { background: var(--accent); color: white; border: none; padding: 15px; cursor: pointer; font-weight: 800; width: 100%; text-transform: uppercase; }
+        /* COMPONENTS */
+        .site-card { border-top: 6px solid var(--accent); background: #fdfdfd; padding: 20px; margin-bottom: 20px; }
+        .plan-preview { width: 100%; height: 200px; background: #eee; margin: 15px 0; object-fit: contain; border: 1px solid #ddd; }
+        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; width: 100%; text-transform: uppercase; font-size: 11px; }
+
+        /* INVENTORY TABLE */
+        #page-inventory { display:none; padding: 40px; background: white; width: 100%; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--accent); font-size: 11px; color: var(--accent); }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
+
+        /* LEAFLET OVERRIDES */
+        .leaflet-popup-content-wrapper { border-radius: 0; border: 2px solid #000; }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo" onclick="location.reload()">RESEARCH<span>DESK</span></div>
-        
-        <div style="display:flex; gap:20px;">
-            <button class="q-link" style="color:white; border-bottom: 2px solid var(--accent);">01. Master Map</button>
-            <button class="q-link" onclick="alert('Inventory Active')">02. Inventory</button>
-        </div>
+        <button class="nav-link active" id="btn-map" onclick="switchView('map')">01. Spatial Map</button>
+        <button class="nav-link" id="btn-inv" onclick="switchView('inventory')">02. Data Inventory</button>
 
         <div class="quick-links">
             <a href="https://www.buildingsofireland.ie/" target="_blank" class="q-link">NIAH</a>
-            <a href="https://gis.teagasc.ie/soils/" target="_blank" class="q-link">Teagasc</a>
-            <a href="https://www.floodinfo.ie/" target="_blank" class="q-link">Flood.ie</a>
-            <a href="https://www.landdirect.ie/" target="_blank" class="q-link">LandDirect</a>
+            <a href="http://soils.teagasc.ie/" target="_blank" class="q-link">TEAGASC</a>
+            <a href="https://www.floodinfo.ie/" target="_blank" class="q-link">FLOOD.IE</a>
+            <a href="https://www.landdirect.ie/" target="_blank" class="q-link">LANDDIRECT</a>
         </div>
     </nav>
 
-    <div class="toolbar">
-        <h4>Layers & Typology</h4>
-        <label class="toggle-btn"><input type="checkbox" checked onchange="toggleLayer('pins')"> Site Markers</label>
-        <label class="toggle-btn"><input type="checkbox" onchange="toggleType('ecclesiastical')"> Ecclesiastical</label>
-        <label class="toggle-btn"><input type="checkbox" onchange="toggleType('museum')"> Museums</label>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-        <label class="toggle-btn"><input type="checkbox" id="flood-tog" onchange="toggleWMS('flood')"> Flood Overlays</label>
+    <div class="toolbar" id="map-toolbar">
+        <h4>Filter Typology</h4>
+        <div id="filter-controls">
+            <label class="toggle-item"><input type="checkbox" checked value="all" onchange="filterMap()"> All Sites</label>
+        </div>
+        <h4 style="margin-top:15px;">Layers</h4>
+        <label class="toggle-item"><input type="checkbox" id="tog-flood" onchange="toggleFlood()"> Flood Risk (OPW)</label>
     </div>
 
     <div class="main-container">
         <div id="sidebar">
-            <h2 id="site-title" style="margin-top:0;">Selection</h2>
-            <div id="site-content">Click a site to view boundary & deeds.</div>
+            <h2 id="side-title" style="margin-top:0; letter-spacing:-1px;">Select Site</h2>
+            <div id="side-content">
+                <p style="color:#888; font-size: 14px; line-height: 1.6;">Select a site marker to visualize architectural boundaries and land registry data.</p>
+            </div>
         </div>
+
         <div id="map"></div>
+
+        <div id="page-inventory">
+            <h1 style="margin-top:0;">Master Data Inventory</h1>
+            <table>
+                <thead><tr><th>NAME</th><th>TYPOLOGY</th><th>STYLE</th><th>STATUS</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map, sites = [], markerGroup, boundaryGroup, floodWMS;
+        let map, markerGroup, boundaryGroup, floodLayer;
+        let sites = [];
 
         async function initApp() {
-            // Map Setup
-            map = L.map('map', { zoomControl: false }).setView([53.4, -7.9], 7);
+            // 1. Initialize Map
+            map = L.map('map', { zoomControl: false }).setView([53.4, -7.8], 7);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
+            
             markerGroup = L.layerGroup().addTo(map);
             boundaryGroup = L.layerGroup().addTo(map);
 
-            // Fetch Data
+            // 2. Setup Flood WMS
+            floodLayer = L.tileLayer.wms("https://maps.opw.ie/arcgis/services/Flood_Risk/Flood_Maps/MapServer/WMSServer", {
+                layers: '0', format: 'image/png', transparent: true, opacity: 0.5
+            });
+
+            // 3. Load External JSON
             try {
-                const res = await fetch('database.json');
-                sites = await res.json();
-                renderPins('all');
-            } catch(e) { console.error("JSON missing. Create database.json first."); }
+                const response = await fetch('database.json');
+                sites = await response.json();
+                
+                populateFilters();
+                filterMap();
+                renderTable();
+            } catch (error) {
+                console.error("Database error:", error);
+                document.getElementById('side-content').innerHTML = "<p style='color:red;'>Error: database.json failed to load. Ensure you are running this on a local server.</p>";
+            }
         }
 
-        function renderPins(filter) {
+        function populateFilters() {
+            const buckets = [...new Set(sites.map(s => s.bucket))];
+            const container = document.getElementById('filter-controls');
+            container.innerHTML = buckets.map(b => `
+                <label class="toggle-item"><input type="checkbox" checked value="${b}" onchange="filterMap()"> ${b}</label>
+            `).join('');
+        }
+
+        function filterMap() {
             markerGroup.clearLayers();
+            const activeBuckets = Array.from(document.querySelectorAll('#filter-controls input:checked')).map(i => i.value);
+            
             sites.forEach(s => {
-                if (filter === 'all' || s.bucket.toLowerCase() === filter) {
-                    const m = L.circleMarker(s.coords, { radius: 8, color: '#fff', fillColor: varColor(s.bucket), fillOpacity: 1 }).addTo(markerGroup);
-                    m.on('click', () => selectSite(s));
+                if(activeBuckets.includes(s.bucket)) {
+                    const m = L.circleMarker(s.coords, {
+                        radius: 9, color: '#fff', fillColor: getTypologyColor(s.bucket), fillOpacity: 1, weight: 2
+                    }).addTo(markerGroup);
+                    
+                    m.on('click', () => focusSite(s));
                 }
             });
         }
 
-        function selectSite(s) {
-            document.getElementById('site-title').innerText = s.name;
-            document.getElementById('site-content').innerHTML = `
-                <div class="card">
-                    <p><strong>Deed Status:</strong> Registered</p>
-                    <p><strong>Typology:</strong> ${s.bucket}</p>
-                    <button class="primary-btn" onclick="alert('Opening Plan...')">View Folio Plan</button>
+        function focusSite(s) {
+            document.getElementById('side-title').innerText = s.name;
+            document.getElementById('side-content').innerHTML = `
+                <div class="site-card">
+                    <p style="font-size:11px; color:var(--accent); font-weight:800; text-transform:uppercase; margin:0;">${s.bucket} | ${s.style}</p>
+                    <img src="${s.plan_url}" class="plan-preview" onerror="this.src='https://via.placeholder.com/300x180?text=Plan+Access+Denied'">
+                    <p style="font-size:13px; line-height:1.5;"><strong>Plan Configuration:</strong> ${s.plan_type}</p>
+                    <p style="font-size:12px; color:#666; font-style:italic;">"${s.notes}"</p>
+                    <button class="primary-btn" style="margin-top:15px;" onclick="window.open('https://www.landdirect.ie', '_blank')">View Official Folio</button>
                 </div>
             `;
 
-            // Draw Polygon (The "Red Line" Boundary)
+            // Clear previous boundaries
             boundaryGroup.clearLayers();
+
+            // Draw Red Line Boundary from JSON
             if (s.boundary) {
-                L.polygon(s.boundary, { color: 'red', weight: 2, fillOpacity: 0.2 }).addTo(boundaryGroup);
-                map.flyTo(s.coords, 17); // Zoom in to see deeds
+                L.polygon(s.boundary, {
+                    color: 'red',
+                    weight: 2,
+                    fillColor: 'red',
+                    fillOpacity: 0.15
+                }).addTo(boundaryGroup);
             }
+            
+            map.flyTo(s.coords, 17);
         }
 
-        function toggleType(type) {
-            // Logic to filter pins based on ecclesiastical vs museum
-            renderPins(type);
+        function getTypologyColor(type) {
+            const map = { 'Cistercian': '#ff6b00', 'Museum': '#27ae60', 'Benedictine': '#8e44ad', 'Modernist': '#3498db' };
+            return map[type] || '#7f8c8d';
         }
 
-        function varColor(type) {
-            if(type.includes('Eccl')) return '#ff6b00';
-            if(type.includes('Museum')) return '#27ae60';
-            return '#3498db';
+        function toggleFlood() {
+            if(document.getElementById('tog-flood').checked) floodLayer.addTo(map);
+            else map.removeLayer(floodLayer);
+        }
+
+        function renderTable() {
+            document.getElementById('table-body').innerHTML = sites.map(s => `
+                <tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td><td>${s.status}</td></tr>
+            `).join('');
+        }
+
+        function switchView(view) {
+            const isMap = view === 'map';
+            document.getElementById('map').style.display = isMap ? 'block' : 'none';
+            document.getElementById('sidebar').style.display = isMap ? 'block' : 'none';
+            document.getElementById('map-toolbar').style.display = isMap ? 'block' : 'none';
+            document.getElementById('page-inventory').style.display = isMap ? 'none' : 'block';
+            
+            document.getElementById('btn-map').classList.toggle('active', isMap);
+            document.getElementById('btn-inv').classList.toggle('active', !isMap);
+            
+            if(isMap) setTimeout(() => map.invalidateSize(), 200);
         }
 
         initApp();
