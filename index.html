@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS RESEARCH DESK | V6.0</title>
+    <title>GIS RESEARCH DESK | V6.1 RESTORED</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { --accent: #ff6b00; --nav-h: 70px; --sidebar: 400px; }
         body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; height: 100%; overflow: hidden; background: #fff; }
 
-        /* GLOBAL NAVIGATION */
+        /* HEADER NAV */
         nav { 
             background: #000; color: white; display: flex; align-items: center; 
             padding: 0 30px; height: var(--nav-h); z-index: 2000; position: fixed; top: 0; width: 100%;
@@ -20,7 +20,7 @@
         .nav-btn { color: #666; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; background: none; border: none; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
         .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); padding-bottom: 8px; }
 
-        /* VIEWPORT LAYOUT */
+        /* VIEWPORT */
         .viewport { display: flex; padding-top: var(--nav-h); height: calc(100vh - var(--nav-h)); position: relative; }
         
         /* SIDEBAR: SYNTHESIS STATION */
@@ -40,15 +40,14 @@
             height: calc(100vh - var(--nav-h)); background: white; z-index: 1500; padding: 60px; overflow-y: auto; 
         }
 
-        /* DATA PRESENTATION */
+        /* PRECEDENT ANALYSIS GRID */
         .precedent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 30px; }
         .precedent-card { border: 1px solid #eee; padding: 15px; background: #fcfcfc; border-top: 4px solid var(--accent); }
         .precedent-card img { width: 100%; height: 180px; object-fit: cover; background: #ddd; }
 
-        /* SYNTHESIS COMPONENTS */
-        .report-preview { background: white; border: 1px solid #eee; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .download-btn { background: #000; color: white; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: 900; text-transform: uppercase; font-size: 12px; margin-top: 10px; border: 2px solid #000; }
-        .download-btn:hover { background: var(--accent); border-color: var(--accent); }
+        /* UI BUTTONS */
+        .download-btn { background: #000; color: white; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: 900; text-transform: uppercase; font-size: 12px; margin-top: 10px; }
+        .download-btn:hover { background: var(--accent); }
 
         footer { position: fixed; bottom: 0; width: 100%; background: #fff; border-top: 1px solid #eee; padding: 12px 30px; font-size: 10px; color: #bbb; z-index: 2001; display: flex; justify-content: space-between; }
     </style>
@@ -68,7 +67,7 @@
             <div class="ws-label">Station // Synthesis</div>
             <div class="ws-header"><h2 id="ws-title">Project Generator</h2></div>
             <div id="ws-body">
-                <p style="color:#777; font-size:14px; line-height:1.6;">Use the GIS Map to select a specific site. The <strong>Synthesis Station</strong> will compile your spatial and precedent data into a downloadable report.</p>
+                <p style="color:#777; font-size:14px; line-height:1.6;">Welcome to the <strong>Synthesis Station</strong>. Select a pin on the GIS map to generate your architectural report.</p>
             </div>
         </aside>
 
@@ -78,14 +77,14 @@
 
         <div id="view-precedent" class="overlay-view">
             <h1 style="margin:0;">Precedent Analysis</h1>
-            <p style="color:#888;">Typological comparison of documented heritage precedents.</p>
+            <p style="color:#888;">Comparative study of architectural typologies from the database.</p>
             <div class="precedent-grid" id="precedent-rows"></div>
         </div>
     </div>
 
     <footer>
-        <span>&copy; 2026 ARCHITECTURAL RESEARCH DESK | GIS SYNTHESIS ACTIVE</span>
-        <span>Branding: Orange/White | Contact: research@desk.ie</span>
+        <span>&copy; 2026 ARCHITECTURAL RESEARCH DESK</span>
+        <span>CONTACT: RESEARCH@DESK.IE | IRELAND</span>
     </footer>
 
     <script src="database.js"></script>
@@ -94,8 +93,21 @@
     <script>
         let map, markers, boundaries, activeSite = null;
 
+        // EMERGENCY DEMO DATA (If database.js is missing)
+        const demoData = [{
+            "id": "DEMO-01",
+            "name": "Restoration Demo: Custom Site",
+            "bucket": "Institutional",
+            "style": "Modernist",
+            "coords": [53.3498, -6.2603],
+            "boundary": [[53.3505, -6.2615], [53.3508, -6.2595], [53.3490, -6.2590], [53.3488, -6.2610]],
+            "plan_url": "https://placehold.co/600x400?text=Restoration+Demo+Plan",
+            "notes": "This is a safety demo. If you see this, the code is working but your database.js file is not being read."
+        }];
+
         function init() {
-            const data = (typeof siteData !== 'undefined') ? siteData : [];
+            // Use siteData from database.js, or fallback to demoData
+            const currentData = (typeof siteData !== 'undefined' && siteData.length > 0) ? siteData : demoData;
 
             map = L.map('map', { zoomControl: false }).setView([53.4, -7.8], 7);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
@@ -103,13 +115,20 @@
             markers = L.layerGroup().addTo(map);
             boundaries = L.layerGroup().addTo(map);
 
+            renderMarkers(currentData);
+            renderPrecedents(currentData);
+        }
+
+        function renderMarkers(data) {
+            markers.clearLayers();
             data.forEach(s => {
                 L.circleMarker(s.coords, { radius: 12, color: '#000', weight: 3, fillColor: '#ff6b00', fillOpacity: 1 })
                  .addTo(markers)
                  .on('click', () => updateSynthesis(s));
             });
+        }
 
-            // Populate Precedents
+        function renderPrecedents(data) {
             document.getElementById('precedent-rows').innerHTML = data.map(s => `
                 <div class="precedent-card">
                     <img src="${s.plan_url}" onerror="this.src='https://placehold.co/400x300?text=No+Plan';">
@@ -121,36 +140,33 @@
 
         function updateSynthesis(s) {
             activeSite = s;
-            showPage('gis');
             document.getElementById('ws-title').innerText = s.name;
             document.getElementById('ws-body').innerHTML = `
-                <div class="report-preview">
-                    <p style="font-size:9px; font-weight:900; color:#aaa; margin:0 0 10px 0;">GENERATED SITE SUMMARY</p>
-                    <img src="${s.plan_url}" style="width:100%; border:1px solid #eee; margin-bottom:15px;">
-                    <div style="font-size:14px; font-weight:800;">${s.name}</div>
-                    <div style="font-size:11px; color:#666;">Typology: ${s.bucket}</div>
-                    <div style="font-size:11px; color:#666; margin-bottom:15px;">Style: ${s.style}</div>
-                    <p style="font-size:12px; line-height:1.5;">${s.notes || 'Ready for site survey.'}</p>
+                <div style="background:white; border:1px solid #eee; padding:15px; margin-bottom:20px;">
+                    <img src="${s.plan_url}" style="width:100%; margin-bottom:10px;">
+                    <div style="font-weight:800; font-size:16px;">${s.name}</div>
+                    <div style="font-size:12px; color:var(--accent); font-weight:800; margin-bottom:10px;">${s.bucket.toUpperCase()}</div>
+                    <p style="font-size:12px; line-height:1.5; border-left:3px solid var(--accent); padding-left:10px;">${s.notes || ''}</p>
                 </div>
-                <button class="download-btn" onclick="downloadReport()">Download Analysis Report</button>
-                <button class="download-btn" style="background:white; color:black;" onclick="window.open('https://www.landdirect.ie','_blank')">Verify LandDirect</button>
+                <button class="download-btn" onclick="downloadTXT()">Generate Synthesis Report</button>
+                <button class="download-btn" style="background:white; color:black; border:1px solid #000;" onclick="window.open('https://www.landdirect.ie','_blank')">Open LandDirect</button>
             `;
 
             boundaries.clearLayers();
             if(s.boundary) {
-                L.polygon(s.boundary, { color: 'red', weight: 4, fillOpacity: 0.1 }).addTo(boundaries);
+                L.polygon(s.boundary, { color: 'red', weight: 4, fillOpacity: 0.15 }).addTo(boundaries);
                 map.flyTo(s.coords, 17, { duration: 1.5 });
             }
         }
 
-        function downloadReport() {
-            if(!activeSite) return alert("Select a site first.");
-            const content = `SITE ANALYSIS REPORT\n\nName: ${activeSite.name}\nTypology: ${activeSite.bucket}\nStyle: ${activeSite.style}\nNotes: ${activeSite.notes}\n\nGenerated via Research Desk 2026`;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const anchor = document.createElement('a');
-            anchor.download = `${activeSite.name.replace(/\s+/g, '_')}_Report.txt`;
-            anchor.href = window.URL.createObjectURL(blob);
-            anchor.click();
+        function downloadTXT() {
+            if(!activeSite) return;
+            const text = `RESEARCH REPORT: ${activeSite.name}\nTypology: ${activeSite.bucket}\nStyle: ${activeSite.style}\nNotes: ${activeSite.notes}`;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${activeSite.name}_Analysis.txt`;
+            link.click();
         }
 
         function showPage(page) {
