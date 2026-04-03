@@ -3,47 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESEARCH DESK | V5.3</title>
+    <title>GIS RESEARCH DESK | V6.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --accent: #ff6b00; --nav-h: 60px; --side: 360px; }
-        body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; height: 100%; background: #fff; overflow: hidden; }
+        :root { --accent: #ff6b00; --nav-h: 70px; --sidebar: 400px; }
+        body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; height: 100%; overflow: hidden; background: #fff; }
 
-        /* HEADER NAVIGATION */
+        /* GLOBAL NAVIGATION */
         nav { 
             background: #000; color: white; display: flex; align-items: center; 
-            padding: 0 25px; height: var(--nav-h); z-index: 1000; border-bottom: 1px solid #333;
+            padding: 0 30px; height: var(--nav-h); z-index: 2000; position: fixed; top: 0; width: 100%;
         }
-        .logo { font-weight: 900; cursor: pointer; font-size: 1.2rem; margin-right: 40px; }
+        .logo { font-weight: 900; cursor: pointer; font-size: 1.4rem; letter-spacing: -1px; }
         .logo span { color: var(--accent); }
-        .nav-tabs { display: flex; gap: 20px; }
-        .nav-link { color: #888; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; background: none; border: none; cursor: pointer; }
-        .nav-link.active { color: white; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+        .nav-tabs { display: flex; gap: 30px; margin-left: 60px; }
+        .nav-btn { color: #666; font-size: 11px; text-decoration: none; font-weight: 800; text-transform: uppercase; background: none; border: none; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
+        .nav-btn.active { color: white; border-bottom: 3px solid var(--accent); padding-bottom: 8px; }
 
-        .portal-links { display: flex; gap: 15px; margin-left: auto; border-left: 1px solid #333; padding-left: 20px; }
-        .p-link { color: #666; font-size: 10px; text-decoration: none; font-weight: 700; text-transform: uppercase; }
-        .p-link:hover { color: var(--accent); }
-
-        /* LAYOUT */
-        .main-container { display: flex; height: calc(100vh - var(--nav-h)); flex-direction: column; }
-        .workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
+        /* VIEWPORT LAYOUT */
+        .viewport { display: flex; padding-top: var(--nav-h); height: calc(100vh - var(--nav-h)); position: relative; }
         
-        #sidebar { width: var(--side); background: #fff; border-right: 1px solid #eee; padding: 25px; overflow-y: auto; z-index: 10; }
-        #map { flex: 1; background: #f4f4f4; }
+        /* SIDEBAR: SYNTHESIS STATION */
+        #synthesis-station { 
+            width: var(--sidebar); background: #fdfdfd; border-right: 1px solid #ddd; 
+            padding: 35px; overflow-y: auto; display: flex; flex-direction: column; z-index: 100;
+        }
+        .ws-label { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 2px; }
+        .ws-header { border-bottom: 6px solid var(--accent); padding-bottom: 20px; margin-bottom: 30px; }
+        
+        /* MAIN VIEWS */
+        #gis-map-view { flex: 1; position: relative; }
+        #map { height: 100%; width: 100%; }
 
-        /* UI COMPONENTS */
-        .toolbar { position: absolute; top: 20px; right: 20px; background: white; z-index: 500; padding: 15px; border: 2px solid #000; box-shadow: 6px 6px 0px var(--accent); width: 170px; }
-        .site-card { border-top: 6px solid var(--accent); background: #fdfdfd; padding: 20px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .plan-preview { width: 100%; height: 200px; object-fit: contain; background: #eee; margin: 10px 0; border: 1px solid #ddd; }
-        .primary-btn { background: var(--accent); color: white; border: none; padding: 14px; cursor: pointer; font-weight: 800; width: 100%; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+        .overlay-view { 
+            display: none; position: absolute; top: var(--nav-h); left: 0; width: 100%; 
+            height: calc(100vh - var(--nav-h)); background: white; z-index: 1500; padding: 60px; overflow-y: auto; 
+        }
 
-        /* INVENTORY TABLE */
-        #page-inventory { display:none; padding: 40px; background: white; width: 100%; overflow-y: auto; height: 100%; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--accent); font-size: 11px; color: var(--accent); }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
+        /* DATA PRESENTATION */
+        .precedent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 30px; }
+        .precedent-card { border: 1px solid #eee; padding: 15px; background: #fcfcfc; border-top: 4px solid var(--accent); }
+        .precedent-card img { width: 100%; height: 180px; object-fit: cover; background: #ddd; }
 
-        footer { background: #f9f9f9; padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px; color: #999; }
+        /* SYNTHESIS COMPONENTS */
+        .report-preview { background: white; border: 1px solid #eee; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .download-btn { background: #000; color: white; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: 900; text-transform: uppercase; font-size: 12px; margin-top: 10px; border: 2px solid #000; }
+        .download-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+        footer { position: fixed; bottom: 0; width: 100%; background: #fff; border-top: 1px solid #eee; padding: 12px 30px; font-size: 10px; color: #bbb; z-index: 2001; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
@@ -51,129 +58,106 @@
     <nav>
         <div class="logo" onclick="location.reload()">RESEARCH<span>DESK</span></div>
         <div class="nav-tabs">
-            <button class="nav-link active" id="btn-map" onclick="switchView('map')">01. Spatial Map</button>
-            <button class="nav-link" id="btn-inv" onclick="switchView('inventory')">02. Inventory</button>
-        </div>
-        <div class="portal-links">
-            <a href="https://www.landdirect.ie/" target="_blank" class="p-link">LandDirect</a>
-            <a href="https://www.floodinfo.ie/" target="_blank" class="p-link">Flood.ie</a>
+            <button class="nav-btn active" id="btn-gis" onclick="showPage('gis')">01. GIS Site Analysis</button>
+            <button class="nav-btn" id="btn-pre" onclick="showPage('precedent')">02. Precedent Analysis</button>
         </div>
     </nav>
 
-    <div class="main-container">
-        <div class="workspace">
-            <div id="sidebar">
-                <h2 id="side-title" style="margin:0; letter-spacing:-1px;">Site Analysis</h2>
-                <div id="side-content">
-                    <p style="color:#888; font-size:13px; line-height:1.6;">Select a site marker to visualize architectural boundaries and registry data.</p>
-                </div>
+    <div class="viewport">
+        <aside id="synthesis-station">
+            <div class="ws-label">Station // Synthesis</div>
+            <div class="ws-header"><h2 id="ws-title">Project Generator</h2></div>
+            <div id="ws-body">
+                <p style="color:#777; font-size:14px; line-height:1.6;">Use the GIS Map to select a specific site. The <strong>Synthesis Station</strong> will compile your spatial and precedent data into a downloadable report.</p>
             </div>
+        </aside>
 
+        <main id="gis-map-view">
             <div id="map"></div>
+        </main>
 
-            <div class="toolbar" id="map-toolbar">
-                <p style="margin:0 0 10px 0; font-size:10px; font-weight:900; color:var(--accent); text-transform:uppercase;">Map Layers</p>
-                <label style="display:flex; align-items:center; font-size:11px; font-weight:700; cursor:pointer;">
-                    <input type="checkbox" id="tog-flood" onchange="toggleFlood()" style="margin-right:8px; accent-color:var(--accent);"> OPW Flood Risk
-                </label>
-            </div>
-
-            <div id="page-inventory">
-                <h1 style="margin-top:0;">Master Data Inventory</h1>
-                <table>
-                    <thead><tr><th>SITE NAME</th><th>TYPOLOGY</th><th>STYLE</th></tr></thead>
-                    <tbody id="table-body"></tbody>
-                </table>
-            </div>
+        <div id="view-precedent" class="overlay-view">
+            <h1 style="margin:0;">Precedent Analysis</h1>
+            <p style="color:#888;">Typological comparison of documented heritage precedents.</p>
+            <div class="precedent-grid" id="precedent-rows"></div>
         </div>
-
-        <footer>
-            <span>&copy; 2026 ARCHITECTURAL RESEARCH DESK</span>
-            <span>CONTACT: RESEARCH@DESK.IE | IRELAND</span>
-        </footer>
     </div>
+
+    <footer>
+        <span>&copy; 2026 ARCHITECTURAL RESEARCH DESK | GIS SYNTHESIS ACTIVE</span>
+        <span>Branding: Orange/White | Contact: research@desk.ie</span>
+    </footer>
 
     <script src="database.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        let map, markerGroup, boundaryGroup, floodLayer;
-
-        // FALLBACK DATA: This ensures the map works even if database.js fails
-        const fallbackData = [
-            {
-                "name": "Demo: Mellifont Abbey",
-                "bucket": "Cistercian",
-                "style": "Romanesque",
-                "coords": [53.7424, -6.4651],
-                "boundary": [[53.7431, -6.4665], [53.7435, -6.4645], [53.7418, -6.4638], [53.7415, -6.4658]],
-                "plan_url": "https://placehold.co/600x400?text=Mellifont+Plan",
-                "notes": "Sample data used because database.js was not found."
-            }
-        ];
+        let map, markers, boundaries, activeSite = null;
 
         function init() {
-            // Use external data if available, otherwise use fallback
-            const activeData = (typeof siteData !== 'undefined') ? siteData : fallbackData;
+            const data = (typeof siteData !== 'undefined') ? siteData : [];
 
             map = L.map('map', { zoomControl: false }).setView([53.4, -7.8], 7);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
             
-            markerGroup = L.layerGroup().addTo(map);
-            boundaryGroup = L.layerGroup().addTo(map);
+            markers = L.layerGroup().addTo(map);
+            boundaries = L.layerGroup().addTo(map);
 
-            floodLayer = L.tileLayer.wms("https://maps.opw.ie/arcgis/services/Flood_Risk/Flood_Maps/MapServer/WMSServer", {
-                layers: '0', format: 'image/png', transparent: true, opacity: 0.4, version: '1.1.1'
-            });
-
-            renderPoints(activeData);
-            renderTable(activeData);
-        }
-
-        function renderPoints(data) {
-            markerGroup.clearLayers();
             data.forEach(s => {
-                L.circleMarker(s.coords, { radius: 10, color: '#000', weight: 2, fillColor: '#ff6b00', fillOpacity: 1 })
-                 .addTo(markerGroup)
-                 .on('click', () => {
-                    document.getElementById('side-title').innerText = s.name;
-                    document.getElementById('side-content').innerHTML = `
-                        <div class="site-card">
-                            <p style="font-size:10px; font-weight:900; color:var(--accent); text-transform:uppercase;">${s.bucket}</p>
-                            <img src="${s.plan_url}" class="plan-preview" onerror="this.src='https://placehold.co/400x300?text=Plan+Missing';">
-                            <p style="font-size:12px; color:#666; margin-bottom:20px;">${s.notes || ''}</p>
-                            <button class="primary-btn" onclick="window.open('https://www.landdirect.ie','_blank')">Start Project</button>
-                        </div>`;
-                    
-                    boundaryGroup.clearLayers();
-                    if(s.boundary) {
-                        L.polygon(s.boundary, { color: 'red', weight: 3, fillOpacity: 0.1 }).addTo(boundaryGroup);
-                        map.flyTo(s.coords, 17);
-                    }
-                 });
+                L.circleMarker(s.coords, { radius: 12, color: '#000', weight: 3, fillColor: '#ff6b00', fillOpacity: 1 })
+                 .addTo(markers)
+                 .on('click', () => updateSynthesis(s));
             });
-        }
 
-        function toggleFlood() {
-            if(document.getElementById('tog-flood').checked) floodLayer.addTo(map);
-            else map.removeLayer(floodLayer);
-        }
-
-        function renderTable(data) {
-            document.getElementById('table-body').innerHTML = data.map(s => `
-                <tr><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td></tr>
+            // Populate Precedents
+            document.getElementById('precedent-rows').innerHTML = data.map(s => `
+                <div class="precedent-card">
+                    <img src="${s.plan_url}" onerror="this.src='https://placehold.co/400x300?text=No+Plan';">
+                    <h3 style="margin:15px 0 5px 0;">${s.name}</h3>
+                    <p style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; margin:0;">${s.bucket} // ${s.style}</p>
+                </div>
             `).join('');
         }
 
-        function switchView(view) {
-            const isMap = view === 'map';
-            document.getElementById('map').style.display = isMap ? 'block' : 'none';
-            document.getElementById('sidebar').style.display = isMap ? 'block' : 'none';
-            document.getElementById('map-toolbar').style.display = isMap ? 'block' : 'none';
-            document.getElementById('page-inventory').style.display = isMap ? 'none' : 'block';
-            document.getElementById('btn-map').classList.toggle('active', isMap);
-            document.getElementById('btn-inv').classList.toggle('active', !isMap);
-            if(isMap) setTimeout(() => map.invalidateSize(), 100);
+        function updateSynthesis(s) {
+            activeSite = s;
+            showPage('gis');
+            document.getElementById('ws-title').innerText = s.name;
+            document.getElementById('ws-body').innerHTML = `
+                <div class="report-preview">
+                    <p style="font-size:9px; font-weight:900; color:#aaa; margin:0 0 10px 0;">GENERATED SITE SUMMARY</p>
+                    <img src="${s.plan_url}" style="width:100%; border:1px solid #eee; margin-bottom:15px;">
+                    <div style="font-size:14px; font-weight:800;">${s.name}</div>
+                    <div style="font-size:11px; color:#666;">Typology: ${s.bucket}</div>
+                    <div style="font-size:11px; color:#666; margin-bottom:15px;">Style: ${s.style}</div>
+                    <p style="font-size:12px; line-height:1.5;">${s.notes || 'Ready for site survey.'}</p>
+                </div>
+                <button class="download-btn" onclick="downloadReport()">Download Analysis Report</button>
+                <button class="download-btn" style="background:white; color:black;" onclick="window.open('https://www.landdirect.ie','_blank')">Verify LandDirect</button>
+            `;
+
+            boundaries.clearLayers();
+            if(s.boundary) {
+                L.polygon(s.boundary, { color: 'red', weight: 4, fillOpacity: 0.1 }).addTo(boundaries);
+                map.flyTo(s.coords, 17, { duration: 1.5 });
+            }
+        }
+
+        function downloadReport() {
+            if(!activeSite) return alert("Select a site first.");
+            const content = `SITE ANALYSIS REPORT\n\nName: ${activeSite.name}\nTypology: ${activeSite.bucket}\nStyle: ${activeSite.style}\nNotes: ${activeSite.notes}\n\nGenerated via Research Desk 2026`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const anchor = document.createElement('a');
+            anchor.download = `${activeSite.name.replace(/\s+/g, '_')}_Report.txt`;
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+        }
+
+        function showPage(page) {
+            document.getElementById('view-precedent').style.display = (page === 'precedent') ? 'block' : 'none';
+            document.getElementById('btn-gis').classList.toggle('active', page === 'gis');
+            document.getElementById('btn-pre').classList.toggle('active', page === 'precedent');
+            if(page === 'gis') setTimeout(() => map.invalidateSize(), 200);
         }
 
         window.onload = init;
