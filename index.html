@@ -3,198 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESEARCH DESK | Synthesis Engine</title>
+    <title>RESEARCH DESK | V2.2 Master</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg: #0a0a0a;
-            --panel: #141414;
+            --panel: #111;
             --accent: #007aff;
             --text: #e0e0e0;
             --dim: #666;
-            --border: #333;
+            --border: #222;
+            --white-map: #f5f5f5;
         }
 
         body, html { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Navigation */
-        nav { background: #000; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; height: 60px; }
-        .logo-anchor { cursor: pointer; font-weight: 900; letter-spacing: 1px; padding-right: 20px; border-right: 1px solid var(--border); }
-        .nav-tabs { display: flex; gap: 10px; padding-left: 20px; }
-        .nav-tab { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 12px; font-weight: 600; padding: 10px; }
-        .nav-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        /* --- LANDING PAGE --- */
+        #page-landing {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg); z-index: 10000; overflow-y: auto;
+        }
+        .landing-content { max-width: 900px; margin: 0 auto; padding: 100px 20px; text-align: center; }
+        .hero h1 { font-size: 4rem; letter-spacing: -2px; margin: 0; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; padding: 60px 0; text-align: left; }
+        .footer { border-top: 1px solid var(--border); padding: 40px 0; font-size: 12px; display: flex; justify-content: space-between; color: var(--dim); }
 
-        /* Pages */
+        /* --- GLOBAL NAV --- */
+        nav { 
+            background: #000; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; padding: 0 20px; height: 60px; position: sticky; top: 0; z-index: 999;
+        }
+        .logo-anchor { cursor: pointer; font-weight: 900; padding-right: 20px; border-right: 1px solid var(--border); color: white; text-decoration: none; }
+        .nav-tabs { display: flex; gap: 5px; padding-left: 20px; }
+        .nav-tab { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 11px; font-weight: 700; padding: 10px 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-tab.active { color: var(--accent); }
+
+        /* --- MAIN LAYOUTS --- */
         .page-content { display: none; height: calc(100vh - 60px); width: 100%; }
         .page-content.active { display: flex; }
 
-        /* Map */
-        #map { flex: 1; height: 100%; width: 100%; background: #e5e5e5; }
+        /* MAP SIDEBAR STYLE */
+        .map-layout { display: flex; width: 100%; }
+        #map-sidebar { width: 350px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+        #map { flex: 1; background: var(--white-map); }
 
-        /* Dashboard & Comparison */
-        .dashboard-container, .compare-container { display: flex; width: 100%; height: 100%; }
-        .dash-panel { flex: 1; border-right: 1px solid var(--border); padding: 30px; overflow-y: auto; }
-        .panel-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 20px; display: block; letter-spacing: 1px; }
-        
-        .card { background: #1a1a1a; padding: 20px; border-radius: 4px; border-left: 4px solid var(--accent); margin-bottom: 15px; }
-        .card h4 { margin: 0 0 10px 0; font-size: 14px; }
-        .card p { margin: 0; font-size: 12px; color: #aaa; line-height: 1.5; }
+        /* DATABASE TABLE */
+        .db-container { padding: 40px; overflow-y: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 2px solid var(--border); }
+        td { padding: 12px 10px; border-bottom: 1px solid var(--border); color: #ccc; }
 
-        select { width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid var(--border); margin-bottom: 20px; font-size: 14px; }
+        /* COMPARISON & DASHBOARD */
+        .split-panel { flex: 1; border-right: 1px solid var(--border); padding: 25px; overflow-y: auto; }
+        .panel-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 15px; display: block; letter-spacing: 1px; }
         
-        .plan-placeholder { width: 100%; height: 200px; background: #222; border: 1px dashed #555; display: flex; align-items: center; justify-content: center; color: #555; margin-bottom: 20px; font-family: monospace; }
+        /* CARDS & LINKS */
+        .card { background: #181818; padding: 15px; border-radius: 4px; border-left: 3px solid var(--accent); margin-bottom: 15px; }
+        .quick-link { 
+            display: block; padding: 10px; margin-bottom: 5px; background: #000; 
+            border: 1px solid var(--border); color: var(--accent); text-decoration: none; 
+            font-size: 10px; font-weight: 700; text-align: center; border-radius: 3px;
+        }
+        .quick-link:hover { background: var(--accent); color: white; }
+
+        .primary-btn { background: var(--accent); color: white; border: none; padding: 12px 24px; cursor: pointer; font-weight: 700; }
+        textarea { width: 100%; background: #000; color: white; border: 1px solid var(--border); padding: 10px; height: 100px; font-family: inherit; }
     </style>
 </head>
 <body>
 
-    <nav>
+    <div id="page-landing">
+        <div class="landing-content">
+            <section class="hero">
+                <h1>RESEARCH<span style="color:var(--accent)">DESK</span></h1>
+                <p style="letter-spacing: 5px; color: var(--dim);">V2.2 ARCHITECTURAL APPRAISAL ENGINE</p>
+                <br>
+                <button class="primary-btn" onclick="enterApp()">INITIALIZE WORKSPACE</button>
+            </section>
+            <div class="info-grid">
+                <div><h4>SPATIAL OVERLAY</h4><p>Live GIS mapping of ecclesiastical sites and environmental constraints.</p></div>
+                <div><h4>COMPARATIVE TYPOLOGY</h4><p>Side-by-side morphological analysis of Cistercian vs Benedictine plans.</p></div>
+                <div><h4>SYNTHESIS REPORT</h4><p>Automated collision logic for bespoke PDF site appraisals.</p></div>
+            </div>
+            <div class="footer">
+                <div>© 2026 RESEARCH DESK</div>
+                <div>CONTACT: INFO@RESEARCHDESK.IE</div>
+            </div>
+        </div>
+    </div>
+
+    <nav id="app-nav" style="display:none;">
         <div class="logo-anchor" onclick="location.reload()">RESEARCH<span style="color:var(--accent)">DESK</span></div>
         <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showPage('map')">SPATIAL MAP</button>
-            <button class="nav-tab" onclick="showPage('analysis')">SYNTHESIS DASHBOARD</button>
-            <button class="nav-tab" onclick="showPage('compare')">COMPARISON ENGINE</button>
+            <button class="nav-tab active" onclick="showPage('map', this)">01. SPATIAL MAP</button>
+            <button class="nav-tab" onclick="showPage('database', this)">02. PRECEDENT DB</button>
+            <button class="nav-tab" onclick="showPage('compare', this)">03. COMPARISON</button>
+            <button class="nav-tab" onclick="showPage('analysis', this)">04. SYNTHESIS</button>
         </div>
     </nav>
 
-    <div id="page-map" class="page-content active">
+    <div id="page-map" class="page-content map-layout">
+        <div id="map-sidebar">
+            <span class="panel-label">SITE INSPECTOR</span>
+            <div id="sidebar-content">
+                <p style="color:var(--dim)">Select a site on the map to begin analysis.</p>
+            </div>
+        </div>
         <div id="map"></div>
     </div>
 
-    <div id="page-analysis" class="page-content">
-        <div class="dashboard-container">
-            <div class="dash-panel">
-                <span class="panel-label">SITE IDENTITY</span>
-                <h2 id="dash-name">Select a pin on the map</h2>
-                <p id="dash-style" style="color:var(--accent)"></p>
-                <p id="dash-notes"></p>
-            </div>
-            <div class="dash-panel" style="flex: 2;">
-                <span class="panel-label">COLLISION LOGIC</span>
-                <div id="collision-output"><p style="color:#666;">Waiting for site selection...</p></div>
-            </div>
-        </div>
+    <div id="page-database" class="page-content db-container">
+        <span class="panel-label">MASTER INVENTORY</span>
+        <table id="db-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>NAME</th><th>BUCKET</th><th>STYLE</th><th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <div id="page-compare" class="page-content">
-        <div class="compare-container">
-            <div class="dash-panel">
-                <span class="panel-label">TYPOLOGY A</span>
-                <select id="select-a" onchange="compareSites()"></select>
-                <div id="compare-a-content"></div>
-            </div>
-            <div class="dash-panel">
-                <span class="panel-label">TYPOLOGY B</span>
-                <select id="select-b" onchange="compareSites()"></select>
-                <div id="compare-b-content"></div>
-            </div>
+        <div class="split-panel">
+            <span class="panel-label">TYPOLOGY A</span>
+            <select id="sel-a" style="width:100%; padding:10px; background:#000; color:white;" onchange="runComparison()"></select>
+            <div id="comp-a-result" style="margin-top:20px;"></div>
+        </div>
+        <div class="split-panel">
+            <span class="panel-label">TYPOLOGY B</span>
+            <select id="sel-b" style="width:100%; padding:10px; background:#000; color:white;" onchange="runComparison()"></select>
+            <div id="comp-b-result" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <div id="page-analysis" class="page-content">
+        <div class="split-panel" id="syn-identity">
+            <span class="panel-label">SITE SELECTION</span>
+            <h2 id="syn-name">---</h2>
+            <div id="syn-quicklinks"></div>
+        </div>
+        <div class="split-panel" style="flex:2;">
+            <span class="panel-label">COLLISION LOGIC & RESPONSE</span>
+            <div id="collision-cards"></div>
+            <textarea id="syn-user-notes" placeholder="Enter concluding design strategy..."></textarea>
+            <br><br>
+            <button class="primary-btn" onclick="generatePDF()">EXPORT BESPOKE PDF</button>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // EMBEDDED DATABASE (Fixes the fetch/CORS issue)
-        const database = [
-            { "id": 1, "name": "Mellifont Abbey", "coords": [53.7424, -6.4651], "bucket": "Cistercian", "status": "derelict", "style": "Romanesque", "notes": "Study for Octagon lavabo geometry.", "plan_type": "Expansive Cruciform" },
-            { "id": 18, "name": "Fore Abbey", "coords": [53.6821, -7.2284], "bucket": "Benedictine", "status": "derelict", "style": "Anglo-Norman", "notes": "Fortified towers. Study for structural site.", "plan_type": "Compact/Fortified" },
-            { "id": 42, "name": "Medieval Mile Museum", "coords": [52.6522, -7.2521], "bucket": "Reuse", "status": "reused", "style": "Modern Lead-Clad", "notes": "Lead-clad timber intervention.", "plan_type": "Insertive Shell" },
-            { "id": 23, "name": "Annunciation Finglas", "coords": [53.3892, -6.3031], "bucket": "Modernist", "status": "disused", "style": "Post-War", "notes": "Massive post-war volume.", "plan_type": "Large Clear-Span" },
-            { "id": 3, "name": "Jerpoint Abbey", "coords": [52.5108, -7.1581], "bucket": "Cistercian", "status": "derelict", "style": "Irish Gothic", "notes": "15th-century cloister sculptures.", "plan_type": "Expansive Cruciform" }
-            // Note: Add the rest of your 100 sites into this array!
+        // DATA
+        const churches = [
+            { id: 1, name: "Mellifont Abbey", coords: [53.7424, -6.4651], bucket: "Cistercian", status: "derelict", style: "Romanesque", notes: "The 1142 'Mother House'.", plan: "Expansive Cruciform" },
+            { id: 18, name: "Fore Abbey", coords: [53.6821, -7.2284], bucket: "Benedictine", status: "derelict", style: "Anglo-Norman", notes: "Fortified towers and cell.", plan: "Compact/Fortified" },
+            { id: 23, name: "Annunciation Finglas", coords: [53.3892, -6.3031], bucket: "Modernist", status: "disused", style: "Post-War", notes: "Large clear-span volume.", plan: "Radial/Modernist" },
+            { id: 42, name: "Medieval Mile Museum", coords: [52.6522, -7.2521], bucket: "Reuse", status: "reused", style: "Lead-Clad Hybrid", notes: "St. Mary's adaptive reuse.", plan: "Insertive Box" }
         ];
 
         let map;
+        let selectedSite = null;
 
-        // Initialize Map
-        window.onload = () => {
-            // FIX: Using a clean, white architectural base map
-            map = L.map('map').setView([53.3498, -6.2603], 7);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-            }).addTo(map);
+        function enterApp() {
+            document.getElementById('page-landing').style.display = 'none';
+            document.getElementById('app-nav').style.display = 'flex';
+            initMap();
+            populateDatabase();
+            populateSelectors();
+            showPage('map', document.querySelector('.nav-tab'));
+        }
 
-            // Populate Map Pins
-            database.forEach(site => {
-                let color = site.bucket === 'Cistercian' ? '#ff3b30' : (site.bucket === 'Benedictine' ? '#ff9500' : '#007aff');
-                let marker = L.circleMarker(site.coords, { radius: 8, color: color, fillOpacity: 0.9 }).addTo(map);
-                
-                // Clicking a pin jumps to the dashboard
-                marker.on('click', () => {
-                    runSynthesis(site);
-                    showPage('analysis'); 
-                });
+        function initMap() {
+            if(map) return;
+            map = L.map('map', { zoomControl: false }).setView([53.3498, -6.2603], 7);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            churches.forEach(site => {
+                let color = site.bucket === 'Cistercian' ? '#ff3b30' : (site.bucket === 'Modernist' ? '#007aff' : '#ff9500');
+                let m = L.circleMarker(site.coords, { radius: 8, color: color, fillOpacity: 0.8 }).addTo(map);
+                m.on('click', () => updateInspector(site));
             });
+        }
 
-            populateCompareDropdowns();
-        };
-
-        // Navigation Logic
-        function showPage(pageId) {
+        function showPage(id, btn) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
-            
+            document.getElementById('page-' + id).classList.add('active');
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            if(pageId === 'map') map.invalidateSize(); // Fixes map glitching when hidden
+            if(btn) btn.classList.add('active');
+            if(id === 'map') map.invalidateSize();
         }
 
-        // Dashboard Synthesis Logic
-        function runSynthesis(site) {
-            document.getElementById('dash-name').innerText = site.name;
-            document.getElementById('dash-style').innerText = `${site.bucket} | ${site.style}`;
-            document.getElementById('dash-notes').innerText = site.notes;
-
-            const output = document.getElementById('collision-output');
-            output.innerHTML = ""; // Clear old
-
-            if(site.bucket === "Cistercian" || site.bucket === "Benedictine") {
-                output.innerHTML += `<div class="card"><h4 style="color:#ff3b30;">Heritage Constraint</h4><p>Typology indicates medieval masonry. High archaeological sensitivity. Interventions must be reversible.</p></div>`;
-            }
-            if(site.bucket === "Reuse") {
-                output.innerHTML += `<div class="card"><h4 style="color:#34c759;">Precedent Opportunity</h4><p>This is a successful adaptive reuse site. Analyze the structural junctions between old stone and new materials.</p></div>`;
-            }
-        }
-
-        // Comparison Engine Logic
-        function populateCompareDropdowns() {
-            const selectA = document.getElementById('select-a');
-            const selectB = document.getElementById('select-b');
-            
-            database.forEach(site => {
-                let option = `<option value="${site.id}">${site.name} (${site.bucket})</option>`;
-                selectA.innerHTML += option;
-                selectB.innerHTML += option;
-            });
-            
-            // Set defaults to show off Cistercian vs Benedictine
-            selectA.value = 1; // Mellifont
-            selectB.value = 18; // Fore Abbey
-            compareSites();
-        }
-
-        function compareSites() {
-            const siteA = database.find(s => s.id == document.getElementById('select-a').value);
-            const siteB = database.find(s => s.id == document.getElementById('select-b').value);
-
-            document.getElementById('compare-a-content').innerHTML = renderCompareCard(siteA);
-            document.getElementById('compare-b-content').innerHTML = renderCompareCard(siteB);
-        }
-
-        function renderCompareCard(site) {
-            if(!site) return "";
-            return `
-                <div class="plan-placeholder">
-                    [ ${site.plan_type.toUpperCase()} PLAN PREVIEW ]
-                </div>
-                <div class="card">
-                    <h4>${site.name}</h4>
-                    <p><strong>Typology:</strong> ${site.bucket}</p>
-                    <p><strong>Style:</strong> ${site.style}</p>
-                    <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-                    <p>${site.notes}</p>
-                </div>
+        function updateInspector(site) {
+            selectedSite = site;
+            document.getElementById('sidebar-content').innerHTML = `
+                <h3>${site.name}</h3>
+                <p><strong>Bucket:</strong> ${site.bucket}</p>
+                <p><strong>Status:</strong> ${site.status.toUpperCase()}</p>
+                <p style="font-size:13px; color:#888;">${site.notes}</p>
+                <button class="primary-btn" onclick="showPage('analysis', null); runSynthesis()">SEND TO SYNTHESIS</button>
             `;
+        }
+
+        function populateDatabase() {
+            const tbody = document.querySelector('#db-table tbody');
+            churches.forEach(s => {
+                tbody.innerHTML += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.bucket}</td><td>${s.style}</td><td>${s.status}</td></tr>`;
+            });
+        }
+
+        function populateSelectors() {
+            const sA = document.getElementById('sel-a');
+            const sB = document.getElementById('sel-b');
+            churches.forEach(s => {
+                let opt = `<option value="${s.id}">${s.name}</option>`;
+                sA.innerHTML += opt; sB.innerHTML += opt;
+            });
+            runComparison();
+        }
+
+        function runComparison() {
+            const a = churches.find(s => s.id == document.getElementById('sel-a').value);
+            const b = churches.find(s => s.id == document.getElementById('sel-b').value);
+            
+            const render = (s) => `
+                <div style="background:#222; height:150px; display:flex; align-items:center; justify-content:center; border:1px dashed #444; margin-bottom:15px;">
+                    [ ${s.plan.toUpperCase()} PLAN ]
+                </div>
+                <div class="card"><h4>${s.name}</h4><p>${s.notes}</p></div>
+            `;
+            document.getElementById('comp-a-result').innerHTML = render(a);
+            document.getElementById('comp-b-result').innerHTML = render(b);
+        }
+
+        function runSynthesis() {
+            if(!selectedSite) return;
+            document.getElementById('syn-name').innerText = selectedSite.name;
+            
+            // QUICK LINKS
+            document.getElementById('syn-quicklinks').innerHTML = `
+                <a href="https://www.buildingsofireland.ie/surveys/buildings/?search_text=${encodeURIComponent(selectedSite.name)}" target="_blank" class="quick-link">↗ NIAH SURVEY</a>
+                <a href="https://www.floodinfo.ie/" target="_blank" class="quick-link">↗ OPW FLOOD MAPS</a>
+                <a href="https://www.teagasc.ie/environment/soil-maps/" target="_blank" class="quick-link">↗ TEAGASC SOIL DATA</a>
+            `;
+
+            // COLLISION LOGIC
+            const cards = document.getElementById('collision-cards');
+            cards.innerHTML = "";
+            if(selectedSite.status === "derelict") {
+                cards.innerHTML += `<div class="card" style="border-left-color:red;"><h4>CONSTRAINT: Hydrological/Structural</h4><p>Site is derelict. Cross-reference with Teagasc/OPW for soil saturation and flood risk before foundation design.</p></div>`;
+            }
+            if(selectedSite.bucket === "Modernist") {
+                cards.innerHTML += `<div class="card" style="border-left-color:green;"><h4>OPPORTUNITY: Volumetric Reuse</h4><p>Large internal height allows for secondary mezzanine level or parasitic timber insertion.</p></div>`;
+            }
+        }
+
+        function generatePDF() {
+            const element = document.createElement('div');
+            element.style.padding = "50px";
+            element.innerHTML = `<h1>RESEARCH DESK APPRAISAL: ${selectedSite.name}</h1><p>${document.getElementById('syn-user-notes').value}</p>`;
+            html2pdf().from(element).save(`${selectedSite.name}_Appraisal.pdf`);
         }
     </script>
 </body>
