@@ -1,137 +1,187 @@
-// 1. GLOBAL VARIABLES - Must be outside any functions
-let map;
-let selectedSite = null;
-let sites = []; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESEARCH DESK | V3.1</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --bg: #0a0a0a; --panel: #111; --accent: #007aff; --text: #e0e0e0; --border: #222; }
+        body, html { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-// 2. INITIALIZE APP
-async function initApp() {
-    console.log("Initializing App...");
-    document.getElementById('page-landing').style.display = 'none';
-    document.getElementById('main-nav').style.display = 'flex';
+        /* Navigation */
+        nav { background: #000; border-bottom: 1px solid var(--border); display: none; align-items: center; padding: 0 20px; height: 60px; }
+        .nav-tabs { display: flex; gap: 10px; padding-left: 20px; }
+        .nav-tab { background: none; border: none; color: #666; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 10px; }
+        .nav-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-    try {
-        const response = await fetch('database.json');
-        if (!response.ok) throw new Error("JSON file not found.");
-        const json = await response.json();
-        
-        // Handle different JSON structures
-        sites = json.churches || json;
-        console.log("Database Loaded:", sites.length, "sites found.");
+        /* Page Layouts */
+        .page-content { display: none; height: calc(100vh - 60px); width: 100%; }
+        .page-content.active { display: flex !important; }
 
-        initMap();
-        populateTable();
-        populateSelectors();
+        /* Landing */
+        #page-landing { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 
-    } catch (error) {
-        console.error("Initialization Error:", error);
-        alert("Check Console (F12). Is database.json in the same folder?");
-    }
-}
+        /* Map & Sidebar */
+        #map { flex: 1; background: #ddd; }
+        #sidebar { width: 320px; background: var(--panel); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
 
-// 3. MAP LOGIC
-function initMap() {
-    if (map) return;
-    map = L.map('map', { zoomControl: false }).setView([53.3498, -6.2603], 7);
-    
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        /* General UI */
+        .card { background: #181818; padding: 15px; border-radius: 4px; border-left: 4px solid var(--accent); margin-bottom: 15px; }
+        .primary-btn { background: var(--accent); color: white; border: none; padding: 12px; cursor: pointer; font-weight: 700; width: 100%; border-radius: 4px; }
+        .split-panel { flex: 1; padding: 30px; border-right: 1px solid var(--border); overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--accent); border-bottom: 1px solid var(--border); padding: 10px; font-size: 12px; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        select, textarea { width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
 
-    sites.forEach(s => {
-        if (s.coords && s.coords.length === 2) {
-            let m = L.circleMarker(s.coords, { 
-                radius: 10, 
-                color: '#007aff', 
-                fillOpacity: 0.7 
-            }).addTo(map);
+    <div id="page-landing">
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">RESEARCH<span style="color:var(--accent)">DESK</span></h1>
+        <p style="color: #666; letter-spacing: 3px; margin-bottom: 30px;">SITE DATA & ARCHITECTURAL SYNTHESIS</p>
+        <button class="primary-btn" onclick="initApp()" style="width: 200px;">INITIALIZE ENGINE</button>
+    </div>
 
-            m.on('click', () => {
-                selectedSite = s;
-                updateSidebar(s);
+    <nav id="main-nav">
+        <div style="font-weight:900; color:#fff; cursor:pointer;" onclick="location.reload()">RESEARCHDESK</div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showPage('map')">Map</button>
+            <button class="nav-tab" onclick="showPage('database')">Inventory</button>
+            <button class="nav-tab" onclick="showPage('compare')">Comparison</button>
+            <button class="nav-tab" onclick="showPage('synthesis')">Synthesis</button>
+        </div>
+    </nav>
+
+    <div id="page-map" class="page-content active">
+        <div id="sidebar">
+            <h3 id="side-name">Select a Site</h3>
+            <div id="side-info"><p style="color:#555;">Click a pin on the map to start.</p></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <div id="page-database" class="page-content" style="padding:40px; flex-direction:column; overflow-y:auto;">
+        <h2>MASTER PRECEDENT INVENTORY</h2>
+        <table>
+            <thead><tr><th>ID</th><th>NAME</th><th>TYPE</th><th>STYLE</th></tr></thead>
+            <tbody id="db-body"></tbody>
+        </table>
+    </div>
+
+    <div id="page-compare" class="page-content">
+        <div class="split-panel">
+            <select id="sel-a" onchange="doCompare()"></select>
+            <div id="res-a"></div>
+        </div>
+        <div class="split-panel">
+            <select id="sel-b" onchange="doCompare()"></select>
+            <div id="res-b"></div>
+        </div>
+    </div>
+
+    <div id="page-synthesis" class="page-content">
+        <div class="split-panel">
+            <h2 id="syn-title">No Site Selected</h2>
+            <div id="syn-links"></div>
+        </div>
+        <div class="split-panel" style="flex:2;">
+            <div id="syn-cards"></div>
+            <textarea id="syn-notes" placeholder="Enter conclusions..."></textarea>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let sites = [];
+        let selectedSite = null;
+
+        // Global function for the landing button
+        window.initApp = async function() {
+            document.getElementById('page-landing').style.display = 'none';
+            document.getElementById('main-nav').style.display = 'flex';
+
+            try {
+                const resp = await fetch('database.json');
+                const json = await resp.json();
+                sites = json.churches || json;
+
+                initMap();
+                populateTable();
+                populateSelectors();
+            } catch (e) {
+                console.error("JSON Error:", e);
+                alert("Could not load database.json. Check the console (F12).");
+            }
+        };
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { zoomControl: false }).setView([53.3, -7.5], 7);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            sites.forEach(s => {
+                if (s.coords) {
+                    let m = L.circleMarker(s.coords, { radius: 10, color: '#007aff', fillOpacity: 0.7 }).addTo(map);
+                    m.on('click', () => {
+                        selectedSite = s;
+                        document.getElementById('side-name').innerText = s.name;
+                        document.getElementById('side-info').innerHTML = `
+                            <p>${s.style || 'Unknown Style'}</p>
+                            <button class="primary-btn" onclick="runSynthesisFlow()">ANALYZE SITE</button>
+                        `;
+                    });
+                }
             });
         }
-    });
-}
 
-// 4. SIDEBAR UPDATE
-function updateSidebar(s) {
-    const sideName = document.getElementById('side-name');
-    const sideInfo = document.getElementById('side-info');
-    
-    if(sideName) sideName.innerText = s.name;
-    if(sideInfo) {
-        sideInfo.innerHTML = `
-            <div class="card">
-                <p><strong>STYLE:</strong> ${s.style}</p>
-                <p><strong>STATUS:</strong> ${s.status}</p>
-                <button class="primary-btn" onclick="runSynthesisFlow()">PROCEED TO SYNTHESIS</button>
-            </div>
-        `;
-    }
-}
+        window.showPage = function(id) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + id).classList.add('active');
+            
+            // Update Tab highlights
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
 
-// 5. THE CRITICAL SYNTHESIS FUNCTION (Fixed Visibility)
-window.runSynthesisFlow = function() {
-    if(!selectedSite) {
-        alert("Please select a site on the map first.");
-        return;
-    }
-    
-    // Switch Page
-    showPage('synthesis');
-    
-    // Populate Synthesis UI
-    document.getElementById('syn-site-title').innerText = selectedSite.name;
-    document.getElementById('syn-links').innerHTML = `
-        <a href="https://www.buildingsofireland.ie/surveys/buildings/?search_text=${encodeURIComponent(selectedSite.name)}" target="_blank" class="quick-link">↗ NIAH APPRAISAL</a>
-        <a href="https://www.floodinfo.ie/" target="_blank" class="quick-link">↗ OPW DATA</a>
-    `;
+            if (id === 'map' && map) {
+                setTimeout(() => map.invalidateSize(), 200);
+            }
+        };
 
-    const cards = document.getElementById('syn-cards');
-    cards.innerHTML = `
-        <div class="card">
-            <h4>AUTOMATED COLLISION</h4>
-            <p><strong>Precedent:</strong> ${selectedSite.name}</p>
-            <p><strong>Logic:</strong> The ${selectedSite.style} morphology combined with a ${selectedSite.status} status requires immediate structural appraisal.</p>
-        </div>
-    `;
-};
+        window.runSynthesisFlow = function() {
+            if (!selectedSite) return;
+            showPage('synthesis');
+            document.getElementById('syn-title').innerText = selectedSite.name;
+            document.getElementById('syn-links').innerHTML = `<a href="#" class="primary-btn" style="text-decoration:none; display:inline-block; text-align:center;">OPEN NIAH SURVEY</a>`;
+            document.getElementById('syn-cards').innerHTML = `
+                <div class="card">
+                    <h4>COLLISION ANALYSIS</h4>
+                    <p>Morphology: ${selectedSite.plan || 'Standard'}. Status: ${selectedSite.status}.</p>
+                </div>`;
+        };
 
-// 6. NAVIGATION & HELPERS
-function showPage(id) {
-    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById('page-' + id);
-    if(target) target.classList.add('active');
+        function populateTable() {
+            const body = document.getElementById('db-body');
+            body.innerHTML = sites.map(s => `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.bucket || s.type}</td><td>${s.style}</td></tr>`).join('');
+        }
 
-    // Update Tab UI
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    
-    if(id === 'map' && map) {
-        setTimeout(() => { map.invalidateSize(); }, 200);
-    }
-}
+        function populateSelectors() {
+            const sa = document.getElementById('sel-a');
+            const sb = document.getElementById('sel-b');
+            const opts = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            sa.innerHTML = opts; sb.innerHTML = opts;
+            doCompare();
+        }
 
-function populateTable() {
-    const tbody = document.getElementById('db-body');
-    if(!tbody) return;
-    tbody.innerHTML = sites.map(s => `
-        <tr><td>${s.id}</td><td>${s.name}</td><td>${s.bucket || s.type}</td><td>${s.style}</td></tr>
-    `).join('');
-}
-
-function populateSelectors() {
-    const sa = document.getElementById('sel-a');
-    const sb = document.getElementById('sel-b');
-    if(!sa || !sb) return;
-    
-    const options = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    sa.innerHTML = options;
-    sb.innerHTML = options;
-    doCompare();
-}
-
-function doCompare() {
-    const a = sites.find(s => s.id == document.getElementById('sel-a').value);
-    const b = sites.find(s => s.id == document.getElementById('sel-b').value);
-    const r = (s) => `<div class="card"><h4>${s.name}</h4><p>PLAN: ${s.plan || 'Standard'}</p></div>`;
-    document.getElementById('res-a').innerHTML = r(a);
-    document.getElementById('res-b').innerHTML = r(b);
-}
+        window.doCompare = function() {
+            const a = sites.find(s => s.id == document.getElementById('sel-a').value);
+            const b = sites.find(s => s.id == document.getElementById('sel-b').value);
+            const r = (s) => `<div class="card"><h4>${s.name}</h4><p>PLAN: ${s.plan || 'Cruciform'}</p></div>`;
+            document.getElementById('res-a').innerHTML = r(a);
+            document.getElementById('res-b').innerHTML = r(b);
+        };
+    </script>
+</body>
+</html>
