@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESEARCH DESK | Architectural Synthesis</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #141414;
+            --accent: #007aff; /* Blueprint Blue */
+            --text: #e0e0e0;
+            --dim: #666;
+            --border: #222;
+            --hazard: #ff3b30;
+            --go: #34c759;
+        }
 
+        body, html { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg); color: var(--text);
+            overflow: hidden; 
+        }
+
+        /* --- LANDING PAGE (SCROLLABLE) --- */
+        #page-landing {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            overflow-y: auto; background: var(--bg);
+            z-index: 10000;
+        }
+        .landing-container { max-width: 900px; margin: 0 auto; padding: 100px 20px; }
+        .hero { text-align: center; padding: 100px 0; border-bottom: 1px solid var(--border); }
+        .hero h1 { font-size: 4rem; letter-spacing: -2px; margin: 0; font-weight: 900; }
+        .hero p { letter-spacing: 4px; color: var(--dim); margin-bottom: 40px; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; padding: 80px 0; }
+        .info-card h3 { color: var(--accent); font-size: 12px; text-transform: uppercase; }
+        .info-card p { font-size: 14px; color: #999; line-height: 1.6; }
+
+        footer { border-top: 1px solid var(--border); padding: 40px 0; font-size: 12px; color: var(--dim); }
+        .footer-flex { display: flex; justify-content: space-between; }
+
+        /* --- APP UI --- */
+        #app-wrapper { display: none; height: 100vh; display: flex; flex-direction: column; }
+        
+        nav { 
+            background: #000; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; padding: 0 20px; height: 60px;
+        }
+        .logo-anchor { 
+            cursor: pointer; font-weight: 900; letter-spacing: 1px; 
+            padding-right: 20px; border-right: 1px solid var(--border);
+        }
+        .nav-tabs { display: flex; gap: 10px; padding-left: 20px; }
+        .nav-tab { 
+            background: none; border: none; color: var(--dim); 
+            cursor: pointer; font-size: 12px; font-weight: 600; 
+        }
+        .nav-tab.active { color: var(--accent); }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .page-content { flex: 1; display: none; overflow: hidden; }
+        .page-content.active { display: flex; }
+
+        #map { flex: 1; background: #111; }
+
+        /* SYNTHESIS DASHBOARD */
+        .dashboard-container { display: grid; grid-template-columns: 300px 1fr 350px; width: 100%; height: 100%; }
+        .dash-panel { border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+        .panel-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 20px; display: block; }
+        
+        .collision-card { 
+            background: #1a1a1a; border-left: 4px solid var(--accent); 
+            padding: 15px; margin-bottom: 15px; border-radius: 4px;
+        }
+        .collision-card.constraint { border-left-color: var(--hazard); }
+        .collision-card.opportunity { border-left-color: var(--go); }
+        .collision-card h4 { margin: 0 0 5px 0; font-size: 14px; }
+        .collision-card p { margin: 0; font-size: 12px; color: #aaa; }
+
+        /* BUTTONS */
+        .primary-btn { 
+            background: var(--accent); color: white; border: none; 
+            padding: 12px 24px; cursor: pointer; font-weight: 700; border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="page-landing">
+        <div class="landing-container">
+            <section class="hero">
+                <h1>RESEARCH<span style="color:var(--accent)">DESK</span></h1>
+                <p>V2.0 SYNTHESIS ENGINE</p>
+                <button class="primary-btn" onclick="enterApp()">INITIALIZE SYSTEM</button>
+            </section>
+
+            <section class="info-grid">
+                <div class="info-card">
+                    <h3>Spatial Context</h3>
+                    <p>Cross-referencing historic ecclesiastical coordinates with live environmental risk layers (Flood/Planning).</p>
+                </div>
+                <div class="info-card">
+                    <h3>Synthesis Matrix</h3>
+                    <p>Automated "Collision Logic" translates raw data into architectural constraints and opportunities.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Bespoke Export</h3>
+                    <p>Generate professional A4 site appraisals with synthesized conclusions for project dossiers.</p>
+                </div>
+            </section>
+
+            <footer>
+                <div class="footer-flex">
+                    <div>
+                        <strong>RESEARCH DESK</strong><br>
+                        Dublin, IE | 2026
+                    </div>
+                    <div>
+                        CONTACT: info@researchdesk.ie<br>
+                        SOCIAL: @arch_synthesis
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div id="app-wrapper">
+        <nav>
+            <div class="logo-anchor" onclick="exitToLanding()">RESEARCH<span style="color:var(--accent)">DESK</span></div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showPage('map')">SPATIAL MAP</button>
+                <button class="nav-tab" onclick="showPage('analysis')">SYNTHESIS DASHBOARD</button>
+            </div>
+        </nav>
+
+        <div id="page-map" class="page-content active">
+            <div id="map"></div>
+        </div>
+
+        <div id="page-analysis" class="page-content">
+            <div class="dashboard-container">
+                <div class="dash-panel" id="panel-identity">
+                    <span class="panel-label">SITE IDENTITY</span>
+                    <h2 id="dash-site-name">No Site Selected</h2>
+                    <p id="dash-site-style" style="color:var(--accent)"></p>
+                    <p id="dash-site-notes" style="font-size:13px; color:#888;"></p>
+                </div>
+
+                <div class="dash-panel" id="panel-logic">
+                    <span class="panel-label">COLLISION LOGIC (AUTO-GEN)</span>
+                    <div id="collision-output">
+                        <p style="color:var(--dim)">Select a site on the map to run synthesis...</p>
+                    </div>
+                </div>
+
+                <div class="dash-panel">
+                    <span class="panel-label">DESIGN RESPONSE</span>
+                    <textarea id="user-conclusion" style="width:100%; height:150px; background:#000; color:#fff; border:1px solid var(--border); padding:10px;" placeholder="Add designer notes here..."></textarea>
+                    <br><br>
+                    <button class="primary-btn" style="width:100%" onclick="exportBespokePDF()">GENERATE BESPOKE PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let currentSite = null;
+        let map;
+
+        function enterApp() {
+            document.getElementById('page-landing').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'flex';
+            initMap();
+        }
+
+        function exitToLanding() {
+            document.getElementById('page-landing').style.display = 'block';
+            document.getElementById('app-wrapper').style.display = 'none';
+        }
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { zoomControl: false }).setView([53.3498, -6.2603], 7);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            // Fetch Data and Add Markers
+            fetch('database.json') // Ensure your updated JSON is here
+                .then(res => res.json())
+                .then(data => {
+                    data.churches.forEach(site => {
+                        let marker = L.circleMarker(site.coords, {
+                            radius: 6, color: site.status === 'derelict' ? '#ff3b30' : '#007aff', fillOpacity: 0.8
+                        }).addTo(map);
+                        
+                        marker.on('click', () => {
+                            currentSite = site;
+                            runSynthesis(site);
+                        });
+                    });
+                });
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            // Toggle active class on buttons logic here
+        }
+
+        function runSynthesis(site) {
+            // Update Identity Panel
+            document.getElementById('dash-site-name').innerText = site.name;
+            document.getElementById('dash-site-style').innerText = site.style;
+            document.getElementById('dash-site-notes').innerText = site.notes;
+
+            // Generate Collisions
+            const output = document.getElementById('collision-output');
+            output.innerHTML = "";
+
+            // LOGIC 1: Derelict + Cistercian
+            if(site.status === "derelict" && site.bucket === "Cistercian") {
+                addCollisionCard("Constraint", "National Monument Protocol", "High archaeological sensitivity. Interventions must be non-invasive and fully reversible.", "constraint");
+            }
+
+            // LOGIC 2: Modernist Volume
+            if(site.bucket === "Modernist") {
+                addCollisionCard("Opportunity", "Volumetric Capacity", "Large-span internal space detected. Ideal for modular mezzanine insertion.", "opportunity");
+            }
+
+            // LOGIC 3: Disused Potential
+            if(site.status === "disused") {
+                addCollisionCard("Insight", "Adaptive Buffer", "Structure is recently vacant. Opportunity for temporary cultural programming during planning.", "neutral");
+            }
+        }
+
+        function addCollisionCard(title, subtitle, text, type) {
+            const card = document.createElement('div');
+            card.className = `collision-card ${type}`;
+            card.innerHTML = `<h4>${title}: ${subtitle}</h4><p>${text}</p>`;
+            document.getElementById('collision-output').appendChild(card);
+        }
+
+        function exportBespokePDF() {
+            if(!currentSite) return alert("Select a site first!");
+            
+            const element = document.createElement('div');
+            element.style.padding = "40px";
+            element.style.color = "#000";
+            element.style.fontFamily = "serif";
+            element.innerHTML = `
+                <h1 style="border-bottom: 2px solid #000;">SITE APPRAISAL: ${currentSite.name}</h1>
+                <p><strong>Typology:</strong> ${currentSite.bucket} | <strong>Style:</strong> ${currentSite.style}</p>
+                <hr>
+                <h3>SYNTHESIS FINDINGS</h3>
+                <p>${document.getElementById('collision-output').innerText}</p>
+                <h3>DESIGNER RESPONSE</h3>
+                <p>${document.getElementById('user-conclusion').value}</p>
+                <footer style="margin-top:50px; font-size:10px; color:#888;">Generated by RESEARCH DESK - 2026</footer>
+            `;
+            
+            html2pdf().from(element).save(`${currentSite.name}_Appraisal.pdf`);
+        }
+    </script>
+</body>
+</html>
