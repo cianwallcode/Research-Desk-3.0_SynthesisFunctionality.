@@ -166,23 +166,37 @@
             floodLayer.clearLayers();
         }
 
-        function zoomToAnalysis() {
-            if(!activeSite) return;
-            document.getElementById('analysis-controls').style.display = "block";
-            map.flyTo(activeSite.coords, 18, { duration: 1.5 });
+function zoomToAnalysis() {
+    if(!activeSite) return;
+    
+    // 1. UI Transition
+    document.getElementById('analysis-controls').style.display = "block";
+    map.flyTo(activeSite.coords, 18, { duration: 1.5 });
 
-            // DRAW BOUNDARY
-            borderLayer.clearLayers();
-            if(activeSite.boundary) {
-                L.polygon(activeSite.boundary, { color: 'red', weight: 4, fillOpacity: 0.1, dashArray: '5, 10' }).addTo(borderLayer);
-            }
+    // 2. Clear previous drawings
+    borderLayer.clearLayers();
+    floodLayer.clearLayers();
 
-            // DRAW FLOOD (Demo logic: uses a slightly shifted polygon)
-            floodLayer.clearLayers();
-            if(activeSite.flood) {
-                L.polygon(activeSite.flood, { color: '#0077ff', weight: 0, fillOpacity: 0.4 }).addTo(floodLayer);
-            }
-        }
+    // 3. Draw Red Boundary
+    if(activeSite.boundary) {
+        L.polygon(activeSite.boundary, { 
+            color: 'red', 
+            weight: 3, 
+            fillOpacity: 0.05 
+        }).addTo(borderLayer);
+    }
+
+    // 4. Draw Blue Flood Zone (The missing piece)
+    if(activeSite.flood_zone) {
+        L.polygon(activeSite.flood_zone, { 
+            color: '#0077ff', 
+            weight: 0, 
+            fillOpacity: 0.5 
+        }).addTo(floodLayer);
+    } else {
+        console.warn("No flood_zone data found for: " + activeSite.name);
+    }
+}
 
         function updateToggles() {
             const b = document.getElementById('tog-bound').checked;
