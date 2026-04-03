@@ -1,61 +1,46 @@
-let map, selectedSite = null;
-let sites = []; // Global holder for your JSON data
+// 1. GLOBAL VARIABLES - Must be outside any functions
+let map;
+let selectedSite = null;
+let sites = []; 
 
+// 2. INITIALIZE APP
 async function initApp() {
-    // 1. Hide Landing & Show Nav
+    console.log("Initializing App...");
     document.getElementById('page-landing').style.display = 'none';
     document.getElementById('main-nav').style.display = 'flex';
 
     try {
-        // 2. Fetch the external JSON
         const response = await fetch('database.json');
         if (!response.ok) throw new Error("JSON file not found.");
         const json = await response.json();
         
-        // Handle both formats (if your JSON is an object with a "churches" key or just a flat array)
+        // Handle different JSON structures
         sites = json.churches || json;
+        console.log("Database Loaded:", sites.length, "sites found.");
 
-        // 3. Initialize Map
         initMap();
-
-        // 4. Populate Table
         populateTable();
-
-        // 5. Populate Comparison Selectors
         populateSelectors();
 
     } catch (error) {
-        console.error("Error loading database:", error);
-        alert("Failed to load database.json. Ensure the file is in the same folder and you are using a local server.");
+        console.error("Initialization Error:", error);
+        alert("Check Console (F12). Is database.json in the same folder?");
     }
 }
 
+// 3. MAP LOGIC
 function initMap() {
+    if (map) return;
     map = L.map('map', { zoomControl: false }).setView([53.3498, -6.2603], 7);
     
-    // Clean White Map
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CARTO'
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // Live Flood Overlay (OPW)
-    const floodLayer = L.tileLayer.wms("https://halcrow-p02-res.apps.p02.cf-northeast-1.aws.arcgis.com/arcgis/services/Flood_Maps/MapServer/WMSServer", {
-        layers: '0',
-        format: 'image/png',
-        transparent: true,
-        opacity: 0.5
-    });
-
-    // Render Pins from JSON
     sites.forEach(s => {
-        // Validation: Ensure coords exist to prevent script crash
         if (s.coords && s.coords.length === 2) {
-            let color = s.bucket === 'Museum' ? '#ff9500' : '#007aff';
             let m = L.circleMarker(s.coords, { 
-                radius: 8, 
-                color: color, 
-                fillOpacity: 0.8,
-                weight: 2
+                radius: 10, 
+                color: '#007aff', 
+                fillOpacity: 0.7 
             }).addTo(map);
 
             m.on('click', () => {
@@ -66,94 +51,87 @@ function initMap() {
     });
 }
 
+// 4. SIDEBAR UPDATE
 function updateSidebar(s) {
-    document.getElementById('side-name').innerText = s.name;
-    document.getElementById('side-info').innerHTML = `
-        <div class="card">
-            <p><strong>TYPE:</strong> ${s.bucket || s.type}</p>
-            <p><strong>STYLE:</strong> ${s.style}</p>
-            <p><strong>STATUS:</strong> ${s.status}</p>
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-            <button class="primary-btn" onclick="runSynthesisFlow()">PROCEED TO SYNTHESIS</button>
-        </div>
-    `;
-}
-
-function populateTable() {
-    const tbody = document.getElementById('db-body');
-    tbody.innerHTML = ""; // Clear existing
-    sites.forEach(s => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${s.id}</td>
-                <td>${s.name}</td>
-                <td>${s.bucket || s.type}</td>
-                <td>${s.style}</td>
-                <td>${s.status}</td>
-            </tr>`;
-    });
-}
-
-function populateSelectors() {
-    const sa = document.getElementById('sel-a');
-    const sb = document.getElementById('sel-b');
-    sa.innerHTML = ""; sb.innerHTML = "";
+    const sideName = document.getElementById('side-name');
+    const sideInfo = document.getElementById('side-info');
     
-    sites.forEach(s => {
-        let o = `<option value="${s.id}">${s.name}</option>`;
-        sa.innerHTML += o; 
-        sb.innerHTML += o;
-    });
-    doCompare();
-}
-
-function showPage(id) {
-    // Standard Leaflet fix for hidden maps
-    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-    const targetPage = document.getElementById('page-' + id);
-    if(targetPage) targetPage.classList.add('active');
-
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    // Visual feedback for tabs
-    if(event && event.target) event.target.classList.add('active');
-
-    if(id === 'map' && map) {
-        setTimeout(() => { map.invalidateSize(); }, 200);
+    if(sideName) sideName.innerText = s.name;
+    if(sideInfo) {
+        sideInfo.innerHTML = `
+            <div class="card">
+                <p><strong>STYLE:</strong> ${s.style}</p>
+                <p><strong>STATUS:</strong> ${s.status}</p>
+                <button class="primary-btn" onclick="runSynthesisFlow()">PROCEED TO SYNTHESIS</button>
+            </div>
+        `;
     }
 }
 
-function runSynthesisFlow() {
-    if(!selectedSite) return;
+// 5. THE CRITICAL SYNTHESIS FUNCTION (Fixed Visibility)
+window.runSynthesisFlow = function() {
+    if(!selectedSite) {
+        alert("Please select a site on the map first.");
+        return;
+    }
+    
+    // Switch Page
     showPage('synthesis');
     
+    // Populate Synthesis UI
     document.getElementById('syn-site-title').innerText = selectedSite.name;
     document.getElementById('syn-links').innerHTML = `
         <a href="https://www.buildingsofireland.ie/surveys/buildings/?search_text=${encodeURIComponent(selectedSite.name)}" target="_blank" class="quick-link">↗ NIAH APPRAISAL</a>
-        <a href="https://www.floodinfo.ie/" target="_blank" class="quick-link">↗ OPW REGIONAL DATA</a>
+        <a href="https://www.floodinfo.ie/" target="_blank" class="quick-link">↗ OPW DATA</a>
     `;
 
     const cards = document.getElementById('syn-cards');
     cards.innerHTML = `
         <div class="card">
-            <h4>MORPHOLOGICAL COLLISION</h4>
-            <p>Subject is classified as <strong>${selectedSite.style}</strong>. 
-            The <strong>${selectedSite.status}</strong> state suggests structural investigation 
-            prior to adaptive reuse.</p>
+            <h4>AUTOMATED COLLISION</h4>
+            <p><strong>Precedent:</strong> ${selectedSite.name}</p>
+            <p><strong>Logic:</strong> The ${selectedSite.style} morphology combined with a ${selectedSite.status} status requires immediate structural appraisal.</p>
         </div>
     `;
+};
+
+// 6. NAVIGATION & HELPERS
+function showPage(id) {
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + id);
+    if(target) target.classList.add('active');
+
+    // Update Tab UI
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    
+    if(id === 'map' && map) {
+        setTimeout(() => { map.invalidateSize(); }, 200);
+    }
+}
+
+function populateTable() {
+    const tbody = document.getElementById('db-body');
+    if(!tbody) return;
+    tbody.innerHTML = sites.map(s => `
+        <tr><td>${s.id}</td><td>${s.name}</td><td>${s.bucket || s.type}</td><td>${s.style}</td></tr>
+    `).join('');
+}
+
+function populateSelectors() {
+    const sa = document.getElementById('sel-a');
+    const sb = document.getElementById('sel-b');
+    if(!sa || !sb) return;
+    
+    const options = sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    sa.innerHTML = options;
+    sb.innerHTML = options;
+    doCompare();
 }
 
 function doCompare() {
     const a = sites.find(s => s.id == document.getElementById('sel-a').value);
     const b = sites.find(s => s.id == document.getElementById('sel-b').value);
-    
-    const render = (s) => `
-        <div class="card">
-            <h4>${s.name}</h4>
-            <p><strong>PLAN:</strong> ${s.plan || 'Not Defined'}</p>
-            <p><strong>NOTES:</strong> ${s.notes || 'No architectural notes available.'}</p>
-        </div>`;
-    
-    document.getElementById('res-a').innerHTML = render(a);
-    document.getElementById('res-b').innerHTML = render(b);
+    const r = (s) => `<div class="card"><h4>${s.name}</h4><p>PLAN: ${s.plan || 'Standard'}</p></div>`;
+    document.getElementById('res-a').innerHTML = r(a);
+    document.getElementById('res-b').innerHTML = r(b);
 }
